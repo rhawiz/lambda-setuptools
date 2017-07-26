@@ -14,6 +14,7 @@ from subprocess import Popen, PIPE
 def validate_lambda_function(dist, attr, value):
     if not isinstance(value, (list, tuple)):
         value = [value]
+
     for v in value:
         if not re.compile('^([a-zA-Z0-9_]+\.)*[a-zA-Z0-9_]+:[a-zA-Z0-9_]+$').match(v):
             raise DistutilsSetupError('{} must be in the form of \'my_package.some_module:some_function\''.format(attr))
@@ -89,20 +90,21 @@ class LDist(Command):
         lambda_function = getattr(self.distribution, 'lambda_function', None)
         if not lambda_function:
             return
-        components = lambda_function.split(':')
-        module = components[0]
-        function = components[1]
-        function_lines = [
-            'import {}\n'.format(module),
-            '\n',
-            '\n',
-            'handler = {}.{}\n'.format(module, function)
-        ]
-        package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
-        function_path = os.path.join(self._lambda_build_dir, '{}_function.py'.format(package_name))
-        log.info('creating {}'.format(function_path))
-        with open(function_path, 'w') as py:
-            py.writelines(function_lines)
+        for func in lambda_function:
+            components = func.split(':')
+            module = components[0]
+            function = components[1]
+            function_lines = [
+                'import {}\n'.format(module),
+                '\n',
+                '\n',
+                '{module} = {module}.{function}\n'.format(module=module, function=function)
+            ]
+            package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
+            function_path = os.path.join(self._lambda_build_dir, '{}_function.py'.format(package_name))
+            log.info('creating {}'.format(function_path))
+            with open(function_path, 'w') as py:
+                py.writelines(function_lines)
 
     def _copy_lambda_package(self):
         lambda_package = getattr(self.distribution, 'lambda_package', None)
