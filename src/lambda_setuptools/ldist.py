@@ -90,21 +90,29 @@ class LDist(Command):
         lambda_function = getattr(self.distribution, 'lambda_function', None)
         if not lambda_function:
             return
+
+        function_lines = [
+        ]
+
+        modules = []
         for func in lambda_function:
             components = func.split(':')
             module = components[0]
+            modules.append('import {}\n'.format(module))
             function = components[1]
-            function_lines = [
-                'import {}\n'.format(module),
-                '\n',
-                '\n',
-                '{module} = {module}.{function}\n'.format(module=module, function=function)
-            ]
-            package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
-            function_path = os.path.join(self._lambda_build_dir, '{}_function.py'.format(package_name))
-            log.info('creating {}'.format(function_path))
-            with open(function_path, 'w') as py:
-                py.writelines(function_lines)
+            function_lines.append(
+                '{function} = {module}.{function}\n'.format(module=module, function=function)
+            )
+
+        modules = set(modules)
+
+        function_lines = modules + function_lines
+
+        package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
+        function_path = os.path.join(self._lambda_build_dir, '{}_function.py'.format(package_name))
+        log.info('creating {}'.format(function_path))
+        with open(function_path, 'w') as py:
+            py.writelines(function_lines)
 
     def _copy_lambda_package(self):
         lambda_package = getattr(self.distribution, 'lambda_package', None)
