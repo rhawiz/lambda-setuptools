@@ -12,8 +12,11 @@ from subprocess import Popen, PIPE
 
 
 def validate_lambda_function(dist, attr, value):
-    if not re.compile('^([a-zA-Z0-9_]+\.)*[a-zA-Z0-9_]+:[a-zA-Z0-9_]+$').match(value):
-        raise DistutilsSetupError('{} must be in the form of \'my_package.some_module:some_function\''.format(attr))
+    if not isinstance(value, (list, tuple)):
+        value = [value]
+    for v in value:
+        if not re.compile('^([a-zA-Z0-9_]+\.)*[a-zA-Z0-9_]+:[a-zA-Z0-9_]+$').match(v):
+            raise DistutilsSetupError('{} must be in the form of \'my_package.some_module:some_function\''.format(attr))
 
 
 def add_lambda_module_to_py_modules(dist, attr, value):
@@ -32,7 +35,6 @@ def validate_lambda_package(dist, attr, value):
 
 
 class LDist(Command):
-
     description = 'build a AWS Lambda compatible distribution'
     user_options = []
 
@@ -114,13 +116,12 @@ class LDist(Command):
             log.info('copying {} to {}'.format(filepath, self._lambda_build_dir))
             shutil.copy(filepath, self._lambda_build_dir)
 
-
     def _install_dist_package(self):
         # Get the name of the package that we just built
         package_name = self.distribution.get_name()
         # Get the dist directory that bdist_wheel put the package in
         # Create the lambda build dir
-        self._lambda_build_dir = os.path.join('build', 'ldist-'+package_name)
+        self._lambda_build_dir = os.path.join('build', 'ldist-' + package_name)
         try:
             if os.path.exists(self._lambda_build_dir):
                 shutil.rmtree(self._lambda_build_dir)
