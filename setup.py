@@ -4,12 +4,8 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
-
 here = path.abspath(path.dirname(__file__))
 
-# Convert the README.md to README.rst
-with open('README.rst', 'w') as readme:
-    readme.write('README.md', 'rst', format='markdown')
 
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read()
@@ -36,7 +32,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2.7',
-        ],
+    ],
 
     keywords='setuptools extension',
 
