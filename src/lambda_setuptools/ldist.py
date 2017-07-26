@@ -104,7 +104,7 @@ class LDist(Command):
                 '{function} = {module}.{function}\n'.format(module=module, function=function)
             )
 
-        modules = set(modules)
+        modules = list(set(modules))
 
         function_lines = modules + function_lines
 
