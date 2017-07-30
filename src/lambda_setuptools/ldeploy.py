@@ -100,7 +100,9 @@ class LDeploy(Command):
 
         gw_lambda_mapping = self._create_lambda_functions(ldist_cmd)
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
+        gateway_client = boto3.client('apigateway', getattr(self, 'aws_region', None))
         print(swagger_doc)
+        gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
 
     def _create_swagger_doc(self, lambda_mapping):
         swagger_dict = getattr(self, 'swagger_dict', None)

@@ -17,7 +17,8 @@ def validate_lambda_function(dist, attr, value):
 
     for v in value:
         if not re.compile('^([a-zA-Z0-9_]+\.)*[a-zA-Z0-9_]+:[a-zA-Z0-9_]+(?:[a-zA-Z0-9_]+)?$').match(v):
-            raise DistutilsSetupError('{} must be in the form of \'my_package.some_module:some_function\''.format(attr))
+            raise DistutilsSetupError(
+                '{} must be in the form of \'my_package.some_module:some_function:api_gateway_mapping\''.format(attr))
 
 
 def add_lambda_module_to_py_modules(dist, attr, value):
@@ -101,16 +102,17 @@ class LDist(Command):
         function_lines = []
         modules = []
         for lf in lambda_functions:
-            components = lf.split(':')
+            components = lf.split('.')
             module = components[0]
             modules.append('import {}\n'.format(module))
-            function = components[1]
+            function = components[1].split(":")[0]
             function_lines.append(
                 '{function} = {module}.{function}\n'.format(module=module, function=function)
             )
 
-            if len(components) == 3:
-                lambda_endpoints[components[2]] = "{}.{}".format(function_file_name.split(".")[0], function)
+            if len(components[1].split(":")) == 2:
+                lambda_endpoints[components[1].split(":")[1]] = "{}.{}".format(function_file_name.split(".")[0],
+                                                                               function)
 
         setattr(self, 'lambda_endpoints', lambda_endpoints)
 
