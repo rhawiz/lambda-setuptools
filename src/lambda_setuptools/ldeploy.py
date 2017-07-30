@@ -102,13 +102,13 @@ class LDeploy(Command):
 
         gw_lambda_mapping = self._create_lambda_functions(ldist_cmd)
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
-        gateway_client = boto3.client('apigateway', getattr(self, 'aws_region', None))
+        gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
         print(swagger_doc)
         gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
 
     def _create_swagger_doc(self, lambda_mapping):
-        swagger_dict = getattr(self, 'swagger_dict', None)
-        region = getattr(self, 'aws_region', None)
+        swagger_dict = getattr(self.distribution, 'swagger_dict', None)
+        region = getattr(self.distribution, 'aws_region', None)
 
         paths = swagger_dict.get("paths")
         for endpoint_key in lambda_mapping.keys():
@@ -129,9 +129,9 @@ class LDeploy(Command):
         lambda_endpoints = getattr(ldist_cmd, 'lambda_endpoints', None)
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         dist_name = getattr(ldist_cmd, 'dist_name', None)
-        region = getattr(self, 'aws_region', None)
-        role = getattr(self, 'aws_role', None)
-
+        region = getattr(self.distribution, 'aws_region', None)
+        role = getattr(self.distribution, 'aws_role', None)
+        print(role)
         iam_client = boto3.client('iam')
 
         arn_role = iam_client.get_role(RoleName=role)['Role']['Arn']
@@ -140,7 +140,7 @@ class LDeploy(Command):
 
         zipfile = open(os.path.join(dist_path, dist_name, 'rb'))
         lambda_mapping = {}
-        lambda_config = getattr(self, 'lambda_config', {})
+        lambda_config = getattr(self.distribution, 'lambda_config', {})
         for endpoint in lambda_endpoints.keys():
             handler = lambda_endpoints.get(endpoint)
             function_name = "{}Handler".format(endpoint)
