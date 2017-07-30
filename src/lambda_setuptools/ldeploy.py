@@ -15,6 +15,11 @@ from yaml.scanner import ScannerError
 
 def validate_aws_role(dist, attr, value):
     """Validate lambda config, if not passed into setup then set default config"""
+
+    setattr(dist, attr, value)
+
+
+def validate_lambda_config(dist, attr, value):
     if value is None:
         value = {
             "Runtime": "python3.6",
@@ -22,10 +27,6 @@ def validate_aws_role(dist, attr, value):
             "MemorySize": 123,
             "Publish": True
         }
-    setattr(dist, attr, value)
-
-
-def validate_lambda_config(dist, attr, value):
     setattr(dist, attr, value)
 
 
