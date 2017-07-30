@@ -158,9 +158,10 @@ class LDeploy(Command):
                 try:
                     code_config = {
                         "FunctionName": config.get("FunctionName"),
-                        "ZipFile": config.pop("Code").pop("ZipFile"),
+                        "ZipFile": zipfile.read(),
                         "Publish": config.pop("Publish")
                     }
+                    config.pop("Code")
                     r = lambda_client.update_function_configuration(**config)
                     lambda_client.update_function_code(**code_config)
                     lambda_mapping[endpoint] = r
