@@ -148,7 +148,7 @@ class LDeploy(Command):
             config["Role"] = arn_role
             config["Handler"] = handler
             config["Code"] = {'ZipFile': zipfile.read()}
-            print(config)
+
             try:
                 lambda_client.get_function(FunctionName=function_name)
                 exists = True
@@ -157,6 +157,7 @@ class LDeploy(Command):
             if exists:
                 try:
                     code_config = {
+                        "FunctionName": config.get("FunctionName"),
                         "ZipFile": config.pop("Code").pop("ZipFile"),
                         "Publish": config.pop("Publish")
                     }
