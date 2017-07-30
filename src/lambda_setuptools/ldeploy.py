@@ -3,15 +3,11 @@ from copy import copy
 from json import JSONDecodeError
 
 import boto3
-import json
 
 import yaml
-from botocore.client import Config
-from distutils import log
 from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsSetupError, DistutilsExecError
 from jsonschema import ValidationError
 from setuptools import Command
-from swagger_parser import SwaggerParser
 from swagger_spec_validator import SwaggerValidationError
 from swagger_spec_validator.validator20 import validate_spec
 from yaml.scanner import ScannerError
