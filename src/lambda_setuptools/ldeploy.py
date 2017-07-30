@@ -136,7 +136,7 @@ class LDeploy(Command):
         arn_role = iam_client.get_role(RoleName=role)['Role']['Arn']
 
         lambda_client = boto3.client('lambda', region)
-
+        print(dist_path)
         zipfile = open(dist_path, 'rb')
         lambda_mapping = {}
         lambda_config = getattr(self.distribution, 'lambda_config', {})
