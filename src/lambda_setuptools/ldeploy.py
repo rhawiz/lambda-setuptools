@@ -14,7 +14,6 @@ from yaml.scanner import ScannerError
 
 
 def validate_aws_role(dist, attr, value):
-
     setattr(dist, "aws_role", value)
 
 
@@ -24,8 +23,8 @@ def validate_lambda_config(dist, attr, value):
     if value is None:
         value = {
             "Runtime": "python3.6",
-            "Timeout": 123,
-            "MemorySize": 123,
+            "Timeout": 60,
+            "MemorySize": 128,
             "Publish": True
         }
     setattr(dist, attr, value)
@@ -149,7 +148,7 @@ class LDeploy(Command):
             config["Role"] = arn_role
             config["Handler"] = handler
             config["Code"] = {'ZipFile': zipfile.read()}
-
+            print(config)
             try:
                 lambda_client.get_function(FunctionName=function_name)
                 exists = True
@@ -157,7 +156,12 @@ class LDeploy(Command):
                 exists = False
             if exists:
                 try:
+                    code_config = {
+                        "ZipFile": config.pop("Code").pop("ZipFile"),
+                        "Publish": config.pop("Publish")
+                    }
                     r = lambda_client.update_function_configuration(**config)
+                    lambda_client.update_function_code(**code_config)
                     lambda_mapping[endpoint] = r
                 except Exception as e:
                     raise DistutilsExecError("Failed to update lambda function with error {}".format(e))
