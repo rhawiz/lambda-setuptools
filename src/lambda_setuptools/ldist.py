@@ -16,7 +16,7 @@ def validate_lambda_function(dist, attr, value):
         value = [value]
 
     for v in value:
-        if not re.compile('^([a-zA-Z0-9_]+\.)*[a-zA-Z0-9_]+:[a-zA-Z0-9_]+$').match(v):
+        if not re.compile('^([a-zA-Z0-9_]+\.)*[a-zA-Z0-9_]+:[a-zA-Z0-9_]+(?:[a-zA-Z0-9_]+)?$').match(v):
             raise DistutilsSetupError('{} must be in the form of \'my_package.some_module:some_function\''.format(attr))
 
 
@@ -87,16 +87,21 @@ class LDist(Command):
         self._copy_lambda_package()
 
     def _create_lambda_function(self):
-        lambda_function = getattr(self.distribution, 'lambda_function', None)
-        if not lambda_function:
+        lambda_functions = getattr(self.distribution, 'lambda_function', None)
+
+        if not lambda_functions:
             return
 
-        function_lines = [
-        ]
+        lambda_endpoints = {}
 
+        package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
+
+        function_file_name = '{}_function.py'.format(package_name)
+        function_path = os.path.join(self._lambda_build_dir, function_file_name)
+        function_lines = []
         modules = []
-        for func in lambda_function:
-            components = func.split(':')
+        for lf in lambda_functions:
+            components = lf.split(':')
             module = components[0]
             modules.append('import {}\n'.format(module))
             function = components[1]
@@ -104,12 +109,15 @@ class LDist(Command):
                 '{function} = {module}.{function}\n'.format(module=module, function=function)
             )
 
+            if len(components) == 3:
+                lambda_endpoints[components[2]] = "{}.{}".format(function_file_name.split(".")[0], function)
+
+        setattr(self, 'lambda_endpoints', lambda_endpoints)
+
         modules = list(set(modules))
 
         function_lines = modules + function_lines
 
-        package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
-        function_path = os.path.join(self._lambda_build_dir, '{}_function.py'.format(package_name))
         log.info('creating {}'.format(function_path))
         with open(function_path, 'w') as py:
             py.writelines(function_lines)
