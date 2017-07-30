@@ -138,7 +138,7 @@ class LDeploy(Command):
 
         lambda_client = boto3.client('lambda', region)
 
-        zipfile = open(os.path.join(dist_path, dist_name, 'rb'))
+        zipfile = open(dist_path, 'rb')
         lambda_mapping = {}
         lambda_config = getattr(self.distribution, 'lambda_config', {})
         for endpoint in lambda_endpoints.keys():
