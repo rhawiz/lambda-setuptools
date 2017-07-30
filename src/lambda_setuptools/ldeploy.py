@@ -75,8 +75,8 @@ class LDeploy(Command):
         """Set default values for options."""
         session = boto3.Session()
 
-        default_access_key = session.get_credentials().get('access_key', None)
-        default_secret_access_key = session.get_credentials().get('secret_key', None)
+        default_access_key = session.get_credentials().access_key
+        default_secret_access_key = session.get_credentials().secret_key
 
         # Each user option must be listed here with their default value.
         setattr(self, 'access_key', default_access_key)
@@ -168,13 +168,13 @@ class LDeploy(Command):
 
         return lambda_mapping
 
-
-class MockDist():
-    swagger_dict = None
-
-
-d = MockDist()
-
-sp = "/home/rawand/PycharmProjects/coredb-service-aggregation/coredb-service-aggregation-swagger.json"
-validate_swagger(d, None, sp)
-print(d.swagger_dict)
+#
+# class MockDist():
+#     swagger_dict = None
+#
+#
+# d = MockDist()
+#
+# sp = "/home/rawand/PycharmProjects/coredb-service-aggregation/coredb-service-aggregation-swagger.json"
+# validate_swagger(d, None, sp)
+# print(d.swagger_dict)
