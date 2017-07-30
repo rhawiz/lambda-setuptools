@@ -158,11 +158,12 @@ class LDeploy(Command):
                 try:
                     code_config = {
                         "FunctionName": config.get("FunctionName"),
-                        "ZipFile": zipfile.read(),
+                        "ZipFile": config.pop("Code").pop("ZipFile"),
                         "Publish": config.pop("Publish")
                     }
-                    config.pop("Code")
+
                     r = lambda_client.update_function_configuration(**config)
+
                     lambda_client.update_function_code(**code_config)
                     lambda_mapping[endpoint] = r
                 except Exception as e:
