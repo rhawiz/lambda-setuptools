@@ -14,12 +14,13 @@ from yaml.scanner import ScannerError
 
 
 def validate_aws_role(dist, attr, value):
-    """Validate lambda config, if not passed into setup then set default config"""
 
-    setattr(dist, attr, value)
+    setattr(dist, "aws_role", value)
 
 
 def validate_lambda_config(dist, attr, value):
+    """Validate lambda config, if not passed into setup then set default config"""
+
     if value is None:
         value = {
             "Runtime": "python3.6",
