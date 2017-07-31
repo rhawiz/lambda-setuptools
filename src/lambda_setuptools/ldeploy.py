@@ -122,6 +122,8 @@ class LDeploy(Command):
                         "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
                         function_arn)
                     method_info["uri"] = uri
+        import json
+        print(json.dumps(swagger_dict, indent=4))
         return swagger_dict
 
     def _create_lambda_functions(self, ldist_cmd):
