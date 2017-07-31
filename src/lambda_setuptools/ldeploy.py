@@ -146,11 +146,12 @@ class LDeploy(Command):
         for endpoint in lambda_endpoints.keys():
             handler = lambda_endpoints.get(endpoint)
             config = copy(lambda_config)
+            function_name = "{}Handler".format(endpoint)
 
-            v = 0
+            v = 1
             while True:
                 try:
-                    function_name = "{}Handler{}".format(endpoint, "" if v == 0 else "V{}".format(v))
+                    function_name = "{}HandlerV{}".format(endpoint, v)
 
                     lambda_client.get_function(FunctionName=function_name)
 
