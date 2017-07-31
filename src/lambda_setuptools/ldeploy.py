@@ -118,9 +118,11 @@ class LDeploy(Command):
                 lambda_info = lambda_mapping.get(operation_id)
                 if lambda_info is not None:
                     function_arn = lambda_info.get("FunctionArn")
-                    uri = "{}/{}/invocations".format(
-                        "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
-                        function_arn)
+                    uri = "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{arn}/invocations".format(
+                        arn=function_arn, region=region)
+                    # uri = "{}/{}/invocations".format(
+                    #     "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
+                    #     function_arn)
                     if "x-amazon-apigateway-integration" in method_info:
                         method_info["x-amazon-apigateway-integration"]["uri"] = uri
 
