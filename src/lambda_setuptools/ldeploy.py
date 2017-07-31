@@ -137,8 +137,6 @@ class LDeploy(Command):
 
         lambda_client = boto3.client('lambda', region)
 
-        zipfile = open(dist_path, 'rb')
-
         lambda_mapping = {}
 
         lambda_config = getattr(self.distribution, 'lambda_config', {})
@@ -147,6 +145,7 @@ class LDeploy(Command):
             handler = lambda_endpoints.get(endpoint)
             config = copy(lambda_config)
             function_name = "{}Handler".format(endpoint)
+            zipfile = open(dist_path, 'rb')
 
             v = 1
             while True:
@@ -169,7 +168,7 @@ class LDeploy(Command):
                 lambda_mapping[endpoint] = r
             except Exception as e:
                 raise DistutilsExecError("Failed to create lambda function with error: {}".format(e))
-
+            zipfile.close()
         return lambda_mapping
 
 #
