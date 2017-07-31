@@ -121,7 +121,9 @@ class LDeploy(Command):
                     uri = "{}/{}/invocations".format(
                         "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
                         function_arn)
-                    method_info["uri"] = uri
+                    if "x-amazon-apigateway-integration" in method_info:
+                        method_info["x-amazon-apigateway-integration"]["uri"] = uri
+
         import json
         print(json.dumps(swagger_dict, indent=4))
         return swagger_dict
@@ -172,4 +174,3 @@ class LDeploy(Command):
                 raise DistutilsExecError("Failed to create lambda function with error: {}".format(e))
             zipfile.close()
         return lambda_mapping
-
