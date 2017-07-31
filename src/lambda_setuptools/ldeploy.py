@@ -130,51 +130,42 @@ class LDeploy(Command):
         dist_name = getattr(ldist_cmd, 'dist_name', None)
         region = getattr(self.distribution, 'aws_region', None)
         role = getattr(self.distribution, 'aws_role', None)
-        print(role)
+
         iam_client = boto3.client('iam')
 
         arn_role = iam_client.get_role(RoleName=role)['Role']['Arn']
 
         lambda_client = boto3.client('lambda', region)
-        print(dist_path)
-        print(os.path.exists(dist_path))
+
         zipfile = open(dist_path, 'rb')
+
         lambda_mapping = {}
+
         lambda_config = getattr(self.distribution, 'lambda_config', {})
+
         for endpoint in lambda_endpoints.keys():
             handler = lambda_endpoints.get(endpoint)
-            function_name = "{}Handler".format(endpoint)
             config = copy(lambda_config)
+
+            v = 0
+            while True:
+                try:
+                    function_name = "{}Handler{}".format(endpoint, "" if v == 0 else "V{}".format(v))
+                    lambda_client.get_function(FunctionName=function_name)
+                    break
+                except Exception:
+                    v += 1
+
             config["FunctionName"] = function_name
             config["Role"] = arn_role
             config["Handler"] = handler
             config["Code"] = {'ZipFile': zipfile.read()}
 
             try:
-                lambda_client.get_function(FunctionName=function_name)
-                exists = True
-            except Exception:
-                exists = False
-            if exists:
-                try:
-                    code_config = {
-                        "FunctionName": config.get("FunctionName"),
-                        "ZipFile": config.pop("Code").pop("ZipFile"),
-                        "Publish": config.pop("Publish")
-                    }
-
-                    r = lambda_client.update_function_configuration(**config)
-
-                    lambda_client.update_function_code(**code_config)
-                    lambda_mapping[endpoint] = r
-                except Exception as e:
-                    raise DistutilsExecError("Failed to update lambda function with error {}".format(e))
-            elif not exists:
-                try:
-                    r = lambda_client.create_function(**config)
-                    lambda_mapping[endpoint] = r
-                except Exception as e:
-                    raise DistutilsExecError("Failed to create lambda function with error {}".format(e))
+                r = lambda_client.create_function(**config)
+                lambda_mapping[endpoint] = r
+            except Exception as e:
+                raise DistutilsExecError("Failed to create lambda function with error {}".format(e))
 
         return lambda_mapping
 
