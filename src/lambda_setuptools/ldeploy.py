@@ -106,22 +106,22 @@ class LDeploy(Command):
         gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
 
     def _create_swagger_doc(self, lambda_mapping):
-        swagger_dict = getattr(self.distribution, 'swagger_dict', None)
+        swagger_dict = copy(getattr(self.distribution, 'swagger_dict', None))
         region = getattr(self.distribution, 'aws_region', None)
+        paths = swagger_dict["paths"]
 
-        paths = swagger_dict.get("paths")
-        for endpoint_key in lambda_mapping.keys():
-
-            for method in paths.values():
-                for path_info in method.values():
-                    operation_id = method.get("operationId")
-                    if operation_id == endpoint_key:
-                        lambda_info = lambda_mapping.get(endpoint_key)
-                        function_arn = lambda_info.get("Configuration").get("FunctionArn")
-                        uri = "{}/{}/invocations".format(
-                            "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
-                            function_arn)
-                        path_info["x-amazon-apigateway-integration"]["uri"] = uri
+        for path in paths.keys():
+            path_info = paths[path]
+            for method in path_info.keys():
+                method_info = path_info[method]
+                operation_id = method_info.get("operationId")
+                lambda_info = lambda_mapping.get(operation_id)
+                if lambda_info is not None:
+                    function_arn = lambda_info.get("Configuration").get("FunctionArn")
+                    uri = "{}/{}/invocations".format(
+                        "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
+                        function_arn)
+                    method_info["uri"] = uri
         return swagger_dict
 
     def _create_lambda_functions(self, ldist_cmd):
@@ -171,6 +171,7 @@ class LDeploy(Command):
             zipfile.close()
         return lambda_mapping
 
+
 #
 # class MockDist():
 #     swagger_dict = None
@@ -178,6 +179,41 @@ class LDeploy(Command):
 #
 # d = MockDist()
 #
-# sp = "/home/rawand/PycharmProjects/coredb-service-aggregation/coredb-service-aggregation-swagger.json"
+sp = "/home/rawand/PycharmProjects/coredb-service-aggregation/coredb-service-aggregation-swagger.json"
 # validate_swagger(d, None, sp)
 # print(d.swagger_dict)
+
+lambda_mapping = {
+    "distance": "uri:distnace",
+    "aggregate": "uri:aggregta",
+    "polygon": "uri:polygon",
+}
+
+
+def _create_swagger_doc(lambda_mapping):
+    import json
+    swagger_dict = json.loads(open(sp, "r").read())
+    swagger_dict_modified = copy(swagger_dict)
+    region = "eu-central-1"
+
+    paths = swagger_dict_modified["paths"]
+    for path in paths.keys():
+        path_info = paths[path]
+        for method in path_info.keys():
+            method_info = path_info[method]
+            operation_id = method_info.get("operationId")
+            lambda_info = lambda_mapping.get(operation_id)
+            if lambda_info is not None:
+                function_arn = lambda_info.get("Configuration").get("FunctionArn")
+                uri = "{}/{}/invocations".format(
+                    "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
+                    function_arn)
+                method_info["uri"] = uri
+    print(json.dumps(swagger_dict_modified, indent=4))
+    return swagger_dict_modified
+
+
+import json
+
+_create_swagger_doc(lambda_mapping)
+# print(json.dumps(_create_swagger_doc(lambda_mapping), indent=4))
