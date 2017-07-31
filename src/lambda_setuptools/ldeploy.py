@@ -151,12 +151,12 @@ class LDeploy(Command):
             while True:
                 try:
                     function_name = "{}Handler{}".format(endpoint, "" if v == 0 else "V{}".format(v))
-                    print(function_name)
+
                     lambda_client.get_function(FunctionName=function_name)
-                    print("UNIQUE")
-                    break
-                except Exception:
+
                     v += 1
+                except Exception:
+                    break
 
             config["FunctionName"] = function_name
             config["Role"] = arn_role
