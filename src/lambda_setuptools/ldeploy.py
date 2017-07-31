@@ -117,6 +117,7 @@ class LDeploy(Command):
                 operation_id = method_info.get("operationId")
                 lambda_info = lambda_mapping.get(operation_id)
                 if lambda_info is not None:
+                    lambda_info.get("Configuration")
                     function_arn = lambda_info.get("Configuration").get("FunctionArn")
                     uri = "{}/{}/invocations".format(
                         "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
@@ -165,6 +166,7 @@ class LDeploy(Command):
 
             try:
                 r = lambda_client.create_function(**config)
+                print(r)
                 lambda_mapping[endpoint] = r
             except Exception as e:
                 raise DistutilsExecError("Failed to create lambda function with error: {}".format(e))
