@@ -102,7 +102,7 @@ class LDeploy(Command):
         gw_lambda_mapping = self._create_lambda_functions(ldist_cmd)
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
         gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
-        print(swagger_doc)
+
         gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
 
     def _create_swagger_doc(self, lambda_mapping):
@@ -117,8 +117,7 @@ class LDeploy(Command):
                 operation_id = method_info.get("operationId")
                 lambda_info = lambda_mapping.get(operation_id)
                 if lambda_info is not None:
-                    lambda_info.get("Configuration")
-                    function_arn = lambda_info.get("Configuration").get("FunctionArn")
+                    function_arn = lambda_info.get("FunctionArn")
                     uri = "{}/{}/invocations".format(
                         "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
                         function_arn)
@@ -166,7 +165,6 @@ class LDeploy(Command):
 
             try:
                 r = lambda_client.create_function(**config)
-                print(r)
                 lambda_mapping[endpoint] = r
             except Exception as e:
                 raise DistutilsExecError("Failed to create lambda function with error: {}".format(e))
