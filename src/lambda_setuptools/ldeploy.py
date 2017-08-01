@@ -141,9 +141,8 @@ class LDeploy(Command):
                             StatementId='AllowExecutionFromAPIGateway',
                             Action='lambda:InvokeFunction',
                             Principal='apigateway.amazonaws.com',
-                            SourceArn="arn:aws:execute-api:{region}:{account_id}:{rest_id}//".format(region=region,
-                                                                                                     account_id=account_id,
-                                                                                                     rest_id=rest_id)
+                            SourceArn="arn:aws:execute-api:{region}:{account_id}://POST/event".format(region=region,
+                                                                                                      account_id=account_id)
                         )
 
                 except Exception as e:
