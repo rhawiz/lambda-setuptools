@@ -136,7 +136,12 @@ class LDeploy(Command):
                     account_id = boto3.client('sts').get_caller_identity().get('Account')
                     for function_name in gw_lambda_mapping.keys():
                         log.info("\tUpdating permissions for function {}".format(function_name))
-                        boto3.client('lambda', region).add_permission(
+                        lambda_client = boto3.client('lambda', region)
+                        lambda_client.remove_permission(
+                            FunctionName=function_name,
+                            StatementId='AllowExecutionFromAPIGateway'
+                        )
+                        lambda_client.add_permission(
                             FunctionName=function_name,
                             StatementId='AllowExecutionFromAPIGateway',
                             Action='lambda:InvokeFunction',
