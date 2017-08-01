@@ -106,6 +106,8 @@ class LDeploy(Command):
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         dist_name = getattr(ldist_cmd, 'dist_name', None)
         swagger_path = getattr(self, 'swagger_path')
+        region = getattr(self.distribution, 'aws_region', None)
+        setattr(self, region)
         validate_and_set_swagger_dict(self, 'swagger_path', swagger_path)
         if dist_path is None or dist_name is None:
             raise DistutilsArgError('\'ldist\' missing attributes')
@@ -119,7 +121,8 @@ class LDeploy(Command):
     def _create_and_deploy_api(self, gw_lambda_mapping):
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
         log.info("Creating API gateway from swagger specification")
-        region = getattr(self.distribution, 'aws_region', None)
+        region = getattr(self, 'region')
+
         print(region)
         gateway_client = boto3.client('apigateway', region)
         deploy_stage = getattr(self, 'deploy_stage')
