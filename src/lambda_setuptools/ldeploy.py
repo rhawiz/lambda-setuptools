@@ -119,10 +119,10 @@ class LDeploy(Command):
     def _create_and_deploy_api(self, gw_lambda_mapping):
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
         log.info("Creating API gateway from swagger specification")
-        aws_region = getattr(self.distribution, 'aws_region')
+        region = getattr(self   .distribution, 'aws_region', None)
 
-        print(aws_region)
-        gateway_client = boto3.client('apigateway', aws_region)
+        print(region)
+        gateway_client = boto3.client('apigateway', region)
         deploy_stage = getattr(self, 'deploy_stage')
 
         try:
@@ -142,9 +142,9 @@ class LDeploy(Command):
                     account_id = boto3.client('sts').get_caller_identity().get('Account')
                     for function_name in gw_lambda_mapping.keys():
                         log.info("\tUpdating permissions for function {}".format(function_name))
-                        lambda_client = boto3.client('lambda', aws_region)
+                        lambda_client = boto3.client('lambda', region)
                         source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(
-                            region=aws_region,
+                            region=region,
                             account_id=account_id,
                             rest_id=rest_id)
                         log.info(source_arn)
@@ -159,7 +159,7 @@ class LDeploy(Command):
 
                         lambda_client.add_permission(
                             FunctionName='arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
-                                region=aws_region, account_id=account_id, function_name=function_name),
+                                region=region, account_id=account_id, function_name=function_name),
                             StatementId='api-gateway-execute',
                             Action='lambda:InvokeFunction',
                             Principal='apigateway.amazonaws.com',
