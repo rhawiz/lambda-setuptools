@@ -16,19 +16,31 @@ This extension adds two new commands to setuptools:
         * Effect: This will build (using _ldist_) and upload the resulting ZIP file to the specified S3 bucket
             * _kms-key-id_ is optional. If it is not provided, standard AES256 encryption will be used
             * _s3-prefix_ is optional. If it is not provided, the ZIP file will be uploaded to the root of the S3 bucket
-
-This extension also adds three new attributes to the setup() function:
+3. **ldeploy**
+    * Usage `python setup.py ldeploy --swagger-path <swagger_spec_path> --deploy-stage <stage_name> --access-key=<my_access_key> --secret-access-key=<my_secret>`
+        * Effect: This will build (using _ldist_) and upload to AWS with the function name defined in `operationId` for each path and will map the lambda functions to each gateway if swagger-path is defined. If deploy-stage is defined, a new stage of that name will be created and the API will be deployed.
+            * swagger-path is optional. If not provided the API gateway will not be created
+            * deploy-stage is optional. If not provided stage deployment will not be initiated
+            * access-key is optional. If not provided, default values set in environment variables will be used. If defaults not set, deploy will fail.
+            * secret-access-key is optional. If not provided, default values set in environment variables will be used. If defaults not set, deploy will fail.
 
 1. **lambda_function**
-    * Usage: `lambda_function=<my_package>.<some_module>:<some_function>`
-    * Effect: ldist will create a root-level python module named *<package_name>_function.py* where package_name is derived from the _name_ attribute. This created module will simply redefine your lambda handler function at the root-level
+    * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name>]`
+    * Effect: ldist will create a root-level python module named *<package_name>_function.py* where package_name is derived from the _name_ attribute. This created module will simply redefine all your defined lambda handler function at the root-level
 2. **lambda_module**
     * Usage: `lambda_module=<some_module>`
     * Effect: ldist adds the named module to the list of _py_modules_ to install, normally at the root level
 3. **lambda_package**
     * Usage: `lambda_package=<some_dir>`
     * Effect: ldist will copy the contents of the provided directory into the root level of the resulting lambda distribution. The provided directory **MUST NOT** have an *\_\_init__.py* in it (e.g. - it can't be a real package)
-
+4. **lambda_config**
+    * Usage: `lambda_config=<dict_lambda_configuration>`
+    * Effect: This configuration will be used when creating the lambda functions on AWS
+5. **aws_role**
+    * Usage: `aws_role=<role_name>`
+    * Effect: AWS role to use when creating API gateway (note: the role must exist otherwise it will fail!)
+6. **aws_region**
+    * Usage: `aws_region=<region>`
 All _ldist_ attributes can be used in the same setup() call. It is up to the user to ensure that you don't step all over yourself...
 
 Note that all other commands and attributes in setup.py will still work the way you expect them to.
