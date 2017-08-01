@@ -103,7 +103,7 @@ class LDeploy(Command):
         dist_name = getattr(ldist_cmd, 'dist_name', None)
         swagger_path = getattr(self.distribution, 'swagger_path', None)
 
-        validate_and_set_swagger_dict(self, 'swagger_path', swagger_path)
+        validate_and_set_swagger_dict(self.distribution, 'swagger_path', swagger_path)
 
         if dist_path is None or dist_name is None:
             raise DistutilsArgError('\'ldist\' missing attributes')
