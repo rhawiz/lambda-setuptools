@@ -109,7 +109,8 @@ class LDeploy(Command):
             gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
             try:
                 gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
-            except Exception:
+            except Exception as e:
+                log.error(e)
                 raise DistutilsSetupError("Failed to import swagger specification")
 
     def _create_swagger_doc(self, lambda_mapping):
