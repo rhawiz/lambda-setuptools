@@ -146,17 +146,9 @@ class LDeploy(Command):
                             StatementId='AllowExecutionFromAPIGateway'
                         )
 
-                        # lambda_client.add_permission(
-                        #     FunctionName=function_name,
-                        #     StatementId='AllowExecutionFromAPIGateway',
-                        #     Action='lambda:InvokeFunction',
-                        #     Principal='apigateway.amazonaws.com',
-                        #     SourceArn=source_arn
-                        # )
-
                         lambda_client.add_permission(
-                            FunctionName='arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
-                                region=region, account_id=account_id, function_name=function_name),
+                            FunctionName=function_name,#'arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
+                                #region=region, account_id=account_id, function_name=function_name),
                             StatementId='api-gateway-execute',
                             Action='lambda:InvokeFunction',
                             Principal='apigateway.amazonaws.com',
