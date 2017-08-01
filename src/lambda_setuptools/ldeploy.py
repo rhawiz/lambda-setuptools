@@ -86,7 +86,7 @@ class LDeploy(Command):
         setattr(self, 'access_key', default_access_key)
         setattr(self, 'secret_access_key', default_secret_access_key)
         setattr(self, 'swagger_path', None)
-        setattr(self, 'deploy-stage', None)
+        setattr(self, 'deploy_stage', None)
 
     def finalize_options(self):
         """Post-process options."""
