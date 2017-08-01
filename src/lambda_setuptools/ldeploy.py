@@ -104,7 +104,7 @@ class LDeploy(Command):
         gw_lambda_mapping = self._create_or_update_lambda_functions(ldist_cmd)
 
         # If swagger_dict is not defined, do not create API Gateway
-        if getattr(self.distribution, 'swagger_dict', None) is None:
+        if getattr(self.distribution, 'swagger_dict', None) is not None:
             swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
             gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
             gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
