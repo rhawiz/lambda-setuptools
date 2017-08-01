@@ -193,9 +193,9 @@ class LDeploy(Command):
             else:
                 log.info("Creating lambda function '{}'.".format(function_name))
                 try:
-                    vpc_config = config.pop("VpcConfig")
+                    #vpc_config = config.pop("VpcConfig")
                     r = lambda_client.create_function(**config)
-                    lambda_client.update_function_configuration(FunctionName=function_name, VpcConfig=vpc_config)
+                    #lambda_client.update_function_configuration(FunctionName=function_name, VpcConfig=vpc_config)
                     log.info("successfully created: {}".format(r.get("FunctionArn", "")))
 
                 except Exception as e:
