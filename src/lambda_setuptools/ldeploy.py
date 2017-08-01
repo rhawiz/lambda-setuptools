@@ -119,7 +119,9 @@ class LDeploy(Command):
     def _create_and_deploy_api(self, gw_lambda_mapping):
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
         log.info("Creating API gateway from swagger specification")
-        gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
+        region = getattr(self.distribution, 'aws_region', None)
+
+        gateway_client = boto3.client('apigateway', region)
         deploy_stage = getattr(self, 'deploy_stage')
 
         try:
@@ -136,7 +138,6 @@ class LDeploy(Command):
 
                     log.info("Updating permission")
 
-                    region = getattr(self.distribution, 'aws_region', None)
                     account_id = boto3.client('sts').get_caller_identity().get('Account')
                     for function_name in gw_lambda_mapping.keys():
                         log.info("\tUpdating permissions for function {}".format(function_name))
