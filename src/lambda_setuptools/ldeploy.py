@@ -17,6 +17,10 @@ def validate_aws_role(dist, attr, value):
     setattr(dist, "aws_role", value)
 
 
+def validate_vpc_config(dist, attr, value):
+    setattr(dist, "aws_vpc_config", value)
+
+
 def validate_lambda_config(dist, attr, value):
     """Validate lambda config, if not passed into setup then set default config"""
     config = {
@@ -194,6 +198,7 @@ class LDeploy(Command):
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         region = getattr(self.distribution, 'aws_region', None)
         role = getattr(self.distribution, 'aws_role', None)
+        vpc_config = getattr(self.distribution, 'aws_vpc_config', None)
 
         iam_client = boto3.client('iam')
 
@@ -222,6 +227,8 @@ class LDeploy(Command):
             config["Role"] = arn_role
             config["Handler"] = handler
             config["Code"] = {'ZipFile': zipfile.read()}
+            if vpc_config is not None:
+                config["VpcConfig"] = vpc_config
 
             if exists:
                 log.info("Updating lambda function '{}' with new configuration.".format(function_name))

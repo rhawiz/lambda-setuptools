@@ -54,6 +54,7 @@ setup(
             'lambda_config = lambda_setuptools.ldeploy:validate_lambda_config',
             'aws_role = lambda_setuptools.ldeploy:validate_aws_role',
             'aws_region = lambda_setuptools.ldeploy:validate_aws_region'
+            'aws_vpc_config = lambda_setuptools.ldeploy:validate_vpc_config'
         ]
     }
 )
