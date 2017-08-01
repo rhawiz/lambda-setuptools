@@ -145,7 +145,7 @@ class LDeploy(Command):
                         try:
                             lambda_client.remove_permission(
                                 FunctionName=function_name,
-                                StatementId='AllowExecutionFromAPIGateway'
+                                StatementId='api-gateway-execute'
                             )
                         except Exception:
                             pass
