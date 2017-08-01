@@ -129,15 +129,22 @@ class LDeploy(Command):
                     deployment_resp = gateway_client.create_deployment(
                         restApiId=rest_id,
                         stageName=deploy_stage)
-                    # log.info("Deployment created")
-                    # stage_resp = gateway_client.create_stage(
-                    #     restApiId=rest_id,
-                    #     stageName=deploy_stage,
-                    #     deploymentId=deployment_resp.get('id'),
-                    # )
-                    #
-                    # log.info("Stage created")
-                    log.info("Successfully deployed API")
+
+                    log.info("Updating permission")
+
+                    region = getattr(self.distribution, 'aws_region', None)
+                    account_id = boto3.client('sts').get_caller_identity().get('Account')
+                    for function_name in gw_lambda_mapping.keys():
+                        log.info("\tUpdating permissions for function {}".format(function_name))
+                        boto3.client('lambda', region).add_permission(
+                            FunctionName=function_name,
+                            StatementId='AllowExecutionFromAPIGateway',
+                            Action='lambda:InvokeFunction',
+                            Principal='apigateway.amazonaws.com',
+                            SourceArn="arn:aws:execute-api:{region}:{account_id}:{rest_id}//".format(region=region,
+                                                                                                     account_id=account_id,
+                                                                                                     rest_id=rest_id)
+                        )
 
                 except Exception as e:
 
@@ -213,7 +220,9 @@ class LDeploy(Command):
                 try:
                     lambda_client.update_function_code(**code_config)
                     r = lambda_client.update_function_configuration(**config)
-                    log.info("successfully updated: {}".format(r.get("FunctionArn", "")))
+                    arn = r.get("FunctionArn", "")
+                    log.info("successfully updated: {}".format(arn))
+
                 except Exception:
                     raise DistutilsExecError("Failed to update lambda function: {}")
             else:
