@@ -19,15 +19,16 @@ def validate_aws_role(dist, attr, value):
 
 def validate_lambda_config(dist, attr, value):
     """Validate lambda config, if not passed into setup then set default config"""
+    config = {
+        "Runtime": "python3.6",
+        "Timeout": 60,
+        "MemorySize": 128,
+        "Publish": True
+    }
+    if value is not None and isinstance(value, dict):
+        config.update(value)
 
-    if value is None:
-        value = {
-            "Runtime": "python3.6",
-            "Timeout": 60,
-            "MemorySize": 128,
-            "Publish": True
-        }
-    setattr(dist, attr, value)
+    setattr(dist, attr, config)
 
 
 def validate_aws_region(dist, attr, value):
@@ -40,7 +41,7 @@ def validate_aws_region(dist, attr, value):
             setattr(dist, 'aws_region', session.region_name)
 
 
-def validate_swagger(dist, attr, value):
+def validate_and_set_swagger_dict(dist, attr, value):
     """Validate swagger specification and set dist swagger_dict attribute"""
 
     swagger_dict = value
@@ -69,7 +70,9 @@ class LDeploy(Command):
     user_options = [
         # The format is (long option, short option, description).
         ('access-key=', None, 'The access key to use to upload'),
-        ('secret-access-key=', None, 'The secret access to use to upload')
+        ('secret-access-key=', None, 'The secret access to use to upload'),
+        ('swagger-path=', None, 'Path to swagger specification file (YAML or JSON)'),
+        ('deploy-stage=', None, 'Name of the deployment stage')
     ]
 
     def initialize_options(self):
@@ -82,6 +85,8 @@ class LDeploy(Command):
         # Each user option must be listed here with their default value.
         setattr(self, 'access_key', default_access_key)
         setattr(self, 'secret_access_key', default_secret_access_key)
+        setattr(self, 'swagger_path', None)
+        setattr(self, 'deploy-stage', None)
 
     def finalize_options(self):
         """Post-process options."""
@@ -96,6 +101,9 @@ class LDeploy(Command):
         ldist_cmd = self.get_finalized_command('ldist')
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         dist_name = getattr(ldist_cmd, 'dist_name', None)
+        swagger_path = getattr(self.distribution, 'swagger_path', None)
+
+        validate_and_set_swagger_dict(self, 'swagger_path', swagger_path)
 
         if dist_path is None or dist_name is None:
             raise DistutilsArgError('\'ldist\' missing attributes')
@@ -104,14 +112,41 @@ class LDeploy(Command):
 
         # If swagger_dict is not defined, do not create API Gateway
         if getattr(self.distribution, 'swagger_dict', None) is not None:
-            swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
-            log.info("Creating API gateway using swagger specification")
-            gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
-            try:
-                gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
-            except Exception as e:
-                log.error(e)
-                raise DistutilsSetupError("Failed to import swagger specification")
+            self._create_and_deploy_api(gw_lambda_mapping)
+
+    def _create_and_deploy_api(self, gw_lambda_mapping):
+        swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
+        log.info("Creating API gateway from swagger specification")
+        gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
+        deploy_stage = getattr(self.distribution, 'deploy_stage', None)
+
+        try:
+            import json
+            resp = gateway_client.import_rest_api(failOnWarnings=True, body=json.dumps(swagger_doc))
+            if deploy_stage is not None:
+                rest_id = resp.get('id')
+                try:
+                    log.info("Creating stage {} and deploying API.".format(deploy_stage))
+                    deployment_resp = gateway_client.create_deployment(
+                        restApiId=rest_id,
+                        stageName=deploy_stage)
+                    log.info("Deployment created:\n{}".format(json.dumps(deployment_resp, indent=4)))
+                    stage_resp = gateway_client.create_stage(
+                        restApiId=rest_id,
+                        stageName=deploy_stage,
+                        deploymentId=deployment_resp.get('id'),
+                    )
+
+                    log.info("Stage created:\n{}".format(json.dumps(stage_resp, indent=4)))
+
+                except Exception as e:
+
+                    log.error("Failed to deploy API: {}".format(e))
+
+
+        except Exception as e:
+            log.error(e)
+            raise DistutilsSetupError("Failed to import swagger specification")
 
     def _create_swagger_doc(self, lambda_mapping):
         log.info("Creating swagger specification")
@@ -178,12 +213,15 @@ class LDeploy(Command):
                 try:
                     lambda_client.update_function_code(**code_config)
                     r = lambda_client.update_function_configuration(**config)
+                    log.info("successfully updated: {}".format(r.get("FunctionArn", "")))
                 except Exception:
                     raise DistutilsExecError("Failed to update lambda function: {}")
             else:
                 log.info("Creating lambda function '{}'.".format(function_name))
                 try:
                     r = lambda_client.create_function(**config)
+                    log.info("successfully created: {}".format(r.get("FunctionArn", "")))
+
                 except Exception as e:
                     raise DistutilsExecError("Failed to create lambda function: {}".format(e))
 
