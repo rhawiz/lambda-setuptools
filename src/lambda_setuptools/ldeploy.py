@@ -209,7 +209,6 @@ class LDeploy(Command):
 
         region = getattr(self.distribution, 'aws_region', None)
 
-        print(region)
         gateway_client = boto3.client('apigateway', region)
         deploy_stage = getattr(self, 'deploy_stage')
 
