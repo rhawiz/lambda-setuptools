@@ -130,7 +130,7 @@ class LDeploy(Command):
 
                 try:
                     log.info("Creating stage {} and deploying API.".format(deploy_stage))
-                    deployment_resp = gateway_client.create_deployment(
+                    gateway_client.create_deployment(
                         restApiId=rest_id,
                         stageName=deploy_stage)
 
