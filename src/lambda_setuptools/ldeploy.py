@@ -137,17 +137,27 @@ class LDeploy(Command):
                     for function_name in gw_lambda_mapping.keys():
                         log.info("\tUpdating permissions for function {}".format(function_name))
                         lambda_client = boto3.client('lambda', region)
-                        source_arn = "arn:aws:execute-api:{region}:{account_id}://POST/event".format(region=region,
-                                                                                                     account_id=account_id)
+                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(region=region,
+                                                                                                        account_id=account_id,
+                                                                                                        rest_id=rest_id)
                         log.info(source_arn)
                         lambda_client.remove_permission(
                             FunctionName=function_name,
                             StatementId='AllowExecutionFromAPIGateway'
                         )
 
+                        # lambda_client.add_permission(
+                        #     FunctionName=function_name,
+                        #     StatementId='AllowExecutionFromAPIGateway',
+                        #     Action='lambda:InvokeFunction',
+                        #     Principal='apigateway.amazonaws.com',
+                        #     SourceArn=source_arn
+                        # )
+
                         lambda_client.add_permission(
-                            FunctionName=function_name,
-                            StatementId='AllowExecutionFromAPIGateway',
+                            FunctionName='arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
+                                region=region, account_id=account_id, function_name=function_name),
+                            StatementId='api-gateway-execute',
                             Action='lambda:InvokeFunction',
                             Principal='apigateway.amazonaws.com',
                             SourceArn=source_arn
