@@ -120,7 +120,7 @@ class LDeploy(Command):
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
         log.info("Creating API gateway from swagger specification")
         region = getattr(self.distribution, 'aws_region', None)
-
+        print(region)
         gateway_client = boto3.client('apigateway', region)
         deploy_stage = getattr(self, 'deploy_stage')
 
