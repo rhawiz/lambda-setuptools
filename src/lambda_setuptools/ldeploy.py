@@ -187,8 +187,8 @@ class LDeploy(Command):
                     arn = r.get("FunctionArn", "")
                     log.info("successfully updated: {}".format(arn))
 
-                except Exception:
-                    raise DistutilsExecError("Failed to update lambda function: {}")
+                except Exception as e:
+                    raise DistutilsExecError("Failed to update lambda function: {}".format(e))
             else:
                 log.info("Creating lambda function '{}'.".format(function_name))
                 try:
