@@ -148,7 +148,7 @@ class LDeploy(Command):
 
     def _create_swagger_doc(self, lambda_mapping):
         log.info("Creating swagger specification")
-        swagger_dict = copy(getattr(self.distribution, 'swagger_dict', None))
+        swagger_dict = copy(getattr(self, 'swagger_dict'))
         region = getattr(self.distribution, 'aws_region', None)
         paths = swagger_dict["paths"]
 
