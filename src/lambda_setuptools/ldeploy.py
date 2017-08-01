@@ -137,17 +137,20 @@ class LDeploy(Command):
                     for function_name in gw_lambda_mapping.keys():
                         log.info("\tUpdating permissions for function {}".format(function_name))
                         lambda_client = boto3.client('lambda', region)
+                        source_arn = "arn:aws:execute-api:{region}:{account_id}://POST/event".format(region=region,
+                                                                                                     account_id=account_id)
+                        log.info(source_arn)
                         lambda_client.remove_permission(
                             FunctionName=function_name,
                             StatementId='AllowExecutionFromAPIGateway'
                         )
+
                         lambda_client.add_permission(
                             FunctionName=function_name,
                             StatementId='AllowExecutionFromAPIGateway',
                             Action='lambda:InvokeFunction',
                             Principal='apigateway.amazonaws.com',
-                            SourceArn="arn:aws:execute-api:{region}:{account_id}://POST/event".format(region=region,
-                                                                                                      account_id=account_id)
+                            SourceArn=source_arn
                         )
 
                 except Exception as e:
