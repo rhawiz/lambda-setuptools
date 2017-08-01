@@ -141,10 +141,14 @@ class LDeploy(Command):
                                                                                                         account_id=account_id,
                                                                                                         rest_id=rest_id)
                         log.info(source_arn)
-                        lambda_client.remove_permission(
-                            FunctionName=function_name,
-                            StatementId='AllowExecutionFromAPIGateway'
-                        )
+
+                        try:
+                            lambda_client.remove_permission(
+                                FunctionName=function_name,
+                                StatementId='AllowExecutionFromAPIGateway'
+                            )
+                        except Exception:
+                            pass
 
                         lambda_client.add_permission(
                             FunctionName='arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
