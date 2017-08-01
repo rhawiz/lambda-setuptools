@@ -3,8 +3,7 @@ from copy import copy
 from json import JSONDecodeError
 
 import boto3
-import logging
-
+from distutils import log
 import yaml
 from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsSetupError, DistutilsExecError
 from jsonschema import ValidationError
@@ -106,10 +105,15 @@ class LDeploy(Command):
         # If swagger_dict is not defined, do not create API Gateway
         if getattr(self.distribution, 'swagger_dict', None) is not None:
             swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
+            log.info("Creating API gateway using swagger specification")
             gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
-            gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
+            try:
+                gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
+            except Exception:
+                raise DistutilsSetupError("Failed to import swagger specification")
 
     def _create_swagger_doc(self, lambda_mapping):
+        log.info("Creating swagger specification")
         swagger_dict = copy(getattr(self.distribution, 'swagger_dict', None))
         region = getattr(self.distribution, 'aws_region', None)
         paths = swagger_dict["paths"]
@@ -145,6 +149,7 @@ class LDeploy(Command):
 
         lambda_config = getattr(self.distribution, 'lambda_config', {})
 
+        log.info("Creating lambda functions.")
         for function_name in lambda_function_names.keys():
             handler = lambda_function_names.get(function_name)
 
@@ -163,6 +168,7 @@ class LDeploy(Command):
             config["Code"] = {'ZipFile': zipfile.read()}
 
             if exists:
+                log.info("Updating lambda function '{}' with new configuration.".format(function_name))
                 code_config = {
                     "FunctionName": function_name,
                     "ZipFile": config.pop("Code").pop("ZipFile"),
@@ -174,6 +180,7 @@ class LDeploy(Command):
                 except Exception:
                     raise DistutilsExecError("Failed to update lambda function: {}")
             else:
+                log.info("Creating lambda function '{}'.".format(function_name))
                 try:
                     r = lambda_client.create_function(**config)
                 except Exception as e:

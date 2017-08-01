@@ -2,7 +2,6 @@ import errno
 import os
 import re
 import shutil
-import string
 import zipfile
 
 from distutils import log
