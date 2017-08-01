@@ -3,6 +3,7 @@ from copy import copy
 from json import JSONDecodeError
 
 import boto3
+import logging
 
 import yaml
 from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsSetupError, DistutilsExecError
@@ -96,14 +97,17 @@ class LDeploy(Command):
         ldist_cmd = self.get_finalized_command('ldist')
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         dist_name = getattr(ldist_cmd, 'dist_name', None)
+
         if dist_path is None or dist_name is None:
             raise DistutilsArgError('\'ldist\' missing attributes')
 
-        gw_lambda_mapping = self._create_lambda_functions(ldist_cmd)
-        swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
-        gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
+        gw_lambda_mapping = self._create_or_update_lambda_functions(ldist_cmd)
 
-        gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
+        # If swagger_dict is not defined, do not create API Gateway
+        if getattr(self.distribution, 'swagger_dict', None) is None:
+            swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
+            gateway_client = boto3.client('apigateway', getattr(self.distribution, 'aws_region', None))
+            gateway_client.import_rest_api(failOnWarnings=True, body=swagger_doc)
 
     def _create_swagger_doc(self, lambda_mapping):
         swagger_dict = copy(getattr(self.distribution, 'swagger_dict', None))
@@ -120,20 +124,14 @@ class LDeploy(Command):
                     function_arn = lambda_info.get("FunctionArn")
                     uri = "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{arn}/invocations".format(
                         arn=function_arn, region=region)
-                    # uri = "{}/{}/invocations".format(
-                    #     "arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions".format(region=region),
-                    #     function_arn)
                     if "x-amazon-apigateway-integration" in method_info:
                         method_info["x-amazon-apigateway-integration"]["uri"] = uri
 
-        import json
-        print(json.dumps(swagger_dict, indent=4))
         return swagger_dict
 
-    def _create_lambda_functions(self, ldist_cmd):
-        lambda_endpoints = getattr(ldist_cmd, 'lambda_endpoints', None)
+    def _create_or_update_lambda_functions(self, ldist_cmd):
+        lambda_function_names = getattr(ldist_cmd, 'lambda_function_names', None)
         dist_path = getattr(ldist_cmd, 'dist_path', None)
-        dist_name = getattr(ldist_cmd, 'dist_name', None)
         region = getattr(self.distribution, 'aws_region', None)
         role = getattr(self.distribution, 'aws_role', None)
 
@@ -147,32 +145,41 @@ class LDeploy(Command):
 
         lambda_config = getattr(self.distribution, 'lambda_config', {})
 
-        for endpoint in lambda_endpoints.keys():
-            handler = lambda_endpoints.get(endpoint)
-            config = copy(lambda_config)
-            function_name = "{}Handler".format(endpoint)
+        for function_name in lambda_function_names.keys():
+            handler = lambda_function_names.get(function_name)
+
+            try:
+                lambda_client.get_function(FunctionName=function_name)
+                exists = True
+            except Exception:
+                exists = False
+
             zipfile = open(dist_path, 'rb')
 
-            v = 1
-            while True:
-                try:
-                    function_name = "{}HandlerV{}".format(endpoint, v)
-
-                    lambda_client.get_function(FunctionName=function_name)
-
-                    v += 1
-                except Exception:
-                    break
-
+            config = copy(lambda_config)
             config["FunctionName"] = function_name
             config["Role"] = arn_role
             config["Handler"] = handler
             config["Code"] = {'ZipFile': zipfile.read()}
 
-            try:
-                r = lambda_client.create_function(**config)
-                lambda_mapping[endpoint] = r
-            except Exception as e:
-                raise DistutilsExecError("Failed to create lambda function with error: {}".format(e))
+            if exists:
+                code_config = {
+                    "FunctionName": function_name,
+                    "ZipFile": config.pop("Code").pop("ZipFile"),
+                    "Publish": config.pop("Publish")
+                }
+                try:
+                    lambda_client.update_function_code(**code_config)
+                    r = lambda_client.update_function_configuration(**config)
+                except Exception:
+                    raise DistutilsExecError("Failed to update lambda function: {}")
+            else:
+                try:
+                    r = lambda_client.create_function(**config)
+                except Exception as e:
+                    raise DistutilsExecError("Failed to create lambda function: {}".format(e))
+
             zipfile.close()
+
+            lambda_mapping[function_name] = r
         return lambda_mapping

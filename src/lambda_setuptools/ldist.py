@@ -93,7 +93,7 @@ class LDist(Command):
         if not lambda_functions:
             return
 
-        lambda_endpoints = {}
+        lambda_function_names = {}
 
         package_name = self.distribution.get_name().replace('-', '_').replace('.', '_')
 
@@ -111,10 +111,10 @@ class LDist(Command):
             )
 
             if len(components[1].split(":")) == 2:
-                lambda_endpoints[components[1].split(":")[1]] = "{}.{}".format(function_file_name.split(".")[0],
+                lambda_function_names[components[1].split(":")[1]] = "{}.{}".format(function_file_name.split(".")[0],
                                                                                function)
 
-        setattr(self, 'lambda_endpoints', lambda_endpoints)
+        setattr(self, 'lambda_function_names', lambda_function_names)
 
         modules = list(set(modules))
 
