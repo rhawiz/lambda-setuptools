@@ -141,6 +141,7 @@ class LDeploy(Command):
         lambda_function_names = getattr(ldist_cmd, 'lambda_function_names', None)
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         region = getattr(self.distribution, 'aws_region', None)
+        print(region)
         role = getattr(self.distribution, 'aws_role', None)
         vpc_config = getattr(self.distribution, 'aws_vpc_config', None)
 
