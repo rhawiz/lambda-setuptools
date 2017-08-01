@@ -116,65 +116,6 @@ class LDeploy(Command):
         if getattr(self, 'swagger_dict') is not None:
             self._create_and_deploy_api(gw_lambda_mapping)
 
-    def _create_and_deploy_api(self, gw_lambda_mapping):
-        swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
-        log.info("Creating API gateway from swagger specification")
-        region = getattr(self   .distribution, 'aws_region', None)
-
-        print(region)
-        gateway_client = boto3.client('apigateway', region)
-        deploy_stage = getattr(self, 'deploy_stage')
-
-        try:
-            import json
-            resp = gateway_client.import_rest_api(failOnWarnings=True, body=json.dumps(swagger_doc))
-            if deploy_stage is not None:
-                rest_id = resp.get('id')
-
-                try:
-                    log.info("Creating stage {} and deploying API.".format(deploy_stage))
-                    gateway_client.create_deployment(
-                        restApiId=rest_id,
-                        stageName=deploy_stage)
-
-                    log.info("Updating permission")
-
-                    account_id = boto3.client('sts').get_caller_identity().get('Account')
-                    for function_name in gw_lambda_mapping.keys():
-                        log.info("\tUpdating permissions for function {}".format(function_name))
-                        lambda_client = boto3.client('lambda', region)
-                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(
-                            region=region,
-                            account_id=account_id,
-                            rest_id=rest_id)
-                        log.info(source_arn)
-
-                        try:
-                            lambda_client.remove_permission(
-                                FunctionName=function_name,
-                                StatementId='api-gateway-execute'
-                            )
-                        except Exception:
-                            pass
-
-                        lambda_client.add_permission(
-                            FunctionName='arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
-                                region=region, account_id=account_id, function_name=function_name),
-                            StatementId='api-gateway-execute',
-                            Action='lambda:InvokeFunction',
-                            Principal='apigateway.amazonaws.com',
-                            SourceArn=source_arn
-                        )
-
-                except Exception as e:
-
-                    log.error("Failed to deploy API: {}".format(e))
-
-
-        except Exception as e:
-            log.error(e)
-            raise DistutilsSetupError("Failed to import swagger specification")
-
     def _create_swagger_doc(self, lambda_mapping):
         log.info("Creating swagger specification")
         swagger_dict = copy(getattr(self, 'swagger_dict'))
@@ -261,3 +202,63 @@ class LDeploy(Command):
 
             lambda_mapping[function_name] = r
         return lambda_mapping
+
+    def _create_and_deploy_api(self, gw_lambda_mapping):
+        swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
+        log.info("Creating API gateway from swagger specification")
+
+        region = getattr(self.distribution, 'aws_region', None)
+
+        print(region)
+        gateway_client = boto3.client('apigateway', region)
+        deploy_stage = getattr(self, 'deploy_stage')
+
+        try:
+            import json
+            resp = gateway_client.import_rest_api(failOnWarnings=True, body=json.dumps(swagger_doc))
+            if deploy_stage is not None:
+                rest_id = resp.get('id')
+
+                try:
+                    log.info("Creating stage {} and deploying API.".format(deploy_stage))
+                    gateway_client.create_deployment(
+                        restApiId=rest_id,
+                        stageName=deploy_stage)
+
+                    log.info("Updating permission")
+
+                    account_id = boto3.client('sts').get_caller_identity().get('Account')
+                    for function_name in gw_lambda_mapping.keys():
+                        log.info("\tUpdating permissions for function {}".format(function_name))
+                        lambda_client = boto3.client('lambda', region)
+                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(
+                            region=region,
+                            account_id=account_id,
+                            rest_id=rest_id)
+                        log.info(source_arn)
+
+                        try:
+                            lambda_client.remove_permission(
+                                FunctionName=function_name,
+                                StatementId='api-gateway-execute'
+                            )
+                        except Exception:
+                            pass
+
+                        lambda_client.add_permission(
+                            FunctionName='arn:aws:lambda:{region}:{account_id}:function:{function_name}'.format(
+                                region=region, account_id=account_id, function_name=function_name),
+                            StatementId='api-gateway-execute',
+                            Action='lambda:InvokeFunction',
+                            Principal='apigateway.amazonaws.com',
+                            SourceArn=source_arn
+                        )
+
+                except Exception as e:
+
+                    log.error("Failed to deploy API: {}".format(e))
+
+
+        except Exception as e:
+            log.error(e)
+            raise DistutilsSetupError("Failed to import swagger specification")
