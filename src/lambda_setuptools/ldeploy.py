@@ -141,7 +141,7 @@ class LDeploy(Command):
         lambda_function_names = getattr(ldist_cmd, 'lambda_function_names', None)
         dist_path = getattr(ldist_cmd, 'dist_path', None)
         region = getattr(self.distribution, 'aws_region', None)
-        print(region)
+
         role = getattr(self.distribution, 'aws_role', None)
         vpc_config = getattr(self.distribution, 'aws_vpc_config', None)
 
@@ -174,7 +174,6 @@ class LDeploy(Command):
             config["Code"] = {'ZipFile': zipfile.read()}
             if vpc_config is not None:
                 config["VpcConfig"] = vpc_config
-                print(vpc_config)
 
             if exists:
                 log.info("Updating lambda function '{}' with new configuration.".format(function_name))
@@ -187,14 +186,16 @@ class LDeploy(Command):
                     lambda_client.update_function_code(**code_config)
                     r = lambda_client.update_function_configuration(**config)
                     arn = r.get("FunctionArn", "")
-                    log.info("successfully updated: {}".format(arn))
+                    log.info("\tsuccessfully updated: {}".format(arn))
 
                 except Exception as e:
                     raise DistutilsExecError("Failed to update lambda function: {}".format(e))
             else:
                 log.info("Creating lambda function '{}'.".format(function_name))
                 try:
+                    vpc_config = config.pop("VpcConfig")
                     r = lambda_client.create_function(**config)
+                    lambda_client.update_function_configuration(FunctionName=function_name, VpcConfig=vpc_config)
                     log.info("successfully created: {}".format(r.get("FunctionArn", "")))
 
                 except Exception as e:
