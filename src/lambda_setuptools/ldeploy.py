@@ -128,14 +128,14 @@ class LDeploy(Command):
                     deployment_resp = gateway_client.create_deployment(
                         restApiId=rest_id,
                         stageName=deploy_stage)
-                    log.info("Deployment created:\n{}".format(json.dumps(deployment_resp, indent=4)))
+
                     stage_resp = gateway_client.create_stage(
                         restApiId=rest_id,
                         stageName=deploy_stage,
                         deploymentId=deployment_resp.get('id'),
                     )
 
-                    log.info("Stage created:\n{}".format(json.dumps(stage_resp, indent=4)))
+                    log.info("Successfully deployed API")
 
                 except Exception as e:
 
