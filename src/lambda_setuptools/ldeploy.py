@@ -123,18 +123,20 @@ class LDeploy(Command):
             resp = gateway_client.import_rest_api(failOnWarnings=True, body=json.dumps(swagger_doc))
             if deploy_stage is not None:
                 rest_id = resp.get('id')
+
                 try:
                     log.info("Creating stage {} and deploying API.".format(deploy_stage))
                     deployment_resp = gateway_client.create_deployment(
                         restApiId=rest_id,
                         stageName=deploy_stage)
-
+                    log.info("Deployment created")
                     stage_resp = gateway_client.create_stage(
                         restApiId=rest_id,
                         stageName=deploy_stage,
                         deploymentId=deployment_resp.get('id'),
                     )
 
+                    log.info("Stage created")
                     log.info("Successfully deployed API")
 
                 except Exception as e:
