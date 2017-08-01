@@ -173,6 +173,7 @@ class LDeploy(Command):
             config["Code"] = {'ZipFile': zipfile.read()}
             if vpc_config is not None:
                 config["VpcConfig"] = vpc_config
+                print(vpc_config)
 
             if exists:
                 log.info("Updating lambda function '{}' with new configuration.".format(function_name))
