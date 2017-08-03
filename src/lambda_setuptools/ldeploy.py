@@ -158,6 +158,7 @@ class LDeploy(Command):
         print(vpc_config)
         print(role)
         print(region)
+        print(boto3.client('sts').get_caller_identity())
 
         log.info("Creating lambda functions.")
         for function_name in lambda_function_names.keys():
