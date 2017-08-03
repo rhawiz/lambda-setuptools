@@ -155,6 +155,10 @@ class LDeploy(Command):
 
         lambda_config = getattr(self.distribution, 'lambda_config', {})
 
+        print(vpc_config)
+        print(role)
+        print(region)
+
         log.info("Creating lambda functions.")
         for function_name in lambda_function_names.keys():
             handler = lambda_function_names.get(function_name)
@@ -193,9 +197,9 @@ class LDeploy(Command):
             else:
                 log.info("Creating lambda function '{}'.".format(function_name))
                 try:
-                    #vpc_config = config.pop("VpcConfig")
+                    # vpc_config = config.pop("VpcConfig")
                     r = lambda_client.create_function(**config)
-                    #lambda_client.update_function_configuration(FunctionName=function_name, VpcConfig=vpc_config)
+                    # lambda_client.update_function_configuration(FunctionName=function_name, VpcConfig=vpc_config)
                     log.info("successfully created: {}".format(r.get("FunctionArn", "")))
 
                 except Exception as e:
@@ -264,3 +268,13 @@ class LDeploy(Command):
         except Exception as e:
             log.error(e)
             raise DistutilsSetupError("Failed to import swagger specification")
+
+
+if __name__ == "__main__":
+    ec2 = boto3.resource("ec2")
+    for vpc in ec2.vpcs.all():
+        for subnet in vpc.subnets.all():
+            print(vpc, "all:", subnet)
+        for az in ec2.meta.client.describe_availability_zones()["AvailabilityZones"]:
+            for subnet in vpc.subnets.filter(Filters=[{"Name": "availabilityZone", "Values": [az["ZoneName"]]}]):
+                print(vpc, az["ZoneName"], "filter:", subnet)
