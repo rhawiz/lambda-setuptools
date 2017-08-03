@@ -17,16 +17,16 @@ This extension adds two new commands to setuptools:
             * _kms-key-id_ is optional. If it is not provided, standard AES256 encryption will be used
             * _s3-prefix_ is optional. If it is not provided, the ZIP file will be uploaded to the root of the S3 bucket
 3. **ldeploy**
-    * Usage `python setup.py ldeploy --swagger-path <swagger_spec_path> --deploy-stage <stage_name> --access-key=<my_access_key> --secret-access-key=<my_secret>`
+    * Usage `python setup.py ldeploy --swagger-path <swagger_spec_path> --deploy-stage <stage_name> --access-key=<my_access_key> --secret-access-key=<my_secret> --vpc-subnets=<SUBNET_IDS> --vpc-security-groups=<SECURITY_GROUP_IDS> --role=<AWS_ROLE> --region=<AWS_REGION>`
         * Effect: This will build (using _ldist_) and upload to AWS with the function name defined in `operationId` for each path and will map the lambda functions to each gateway if swagger-path is defined. If deploy-stage is defined, a new stage of that name will be created and the API will be deployed.
-            * access-key            The access key to use to upload. If not provided, default access key set in environment variables will be use if set, otherwise will fail.
-            * secret-access-key     The access key to use to upload. If not provided, default secret key set in environment variables will be use if set, otherwise will fail.
-            * swagger-path          Path to swagger specification file (YAML or JSON)
-            * deploy-stage          Name of the deployment stage
-            * vpc-subnets           VPC Configuration list of subnet ids separated by a comma
-            * vpc-security-groups   VPC Configuration list of security group ids separated by a comma
-            * role                  AWS Gateway role to use when creating API gateway
-            * region                AWS region to use. If not provided, default region set in environment variables will be use if set, otherwise will fail.
+            * *access-key*            Required only if default access key is not set. The access key to use to upload. If not provided, default access key set in environment variables will be use if set, otherwise will fail.
+            * *secret-access-key*     Required only if default secret key is not set. The access key to use to upload. If not provided, default secret key set in environment variables will be use if set, otherwise will fail.
+            * *swagger-path*          Optional. Path to swagger specification file (YAML or JSON)
+            * *deploy-stage*          Optional. Name of the deployment stage when deploying API gateway
+            * *vpc-subnets*           Optional. VPC Configuration list of subnet ids separated by a comma
+            * *vpc-security-groups*   Optional. VPC Configuration list of security group ids separated by a comma
+            * *role*                  Required only when creating API gateway (i.e. if swagger-path is defined) AWS Gateway role to use when creating API gateway
+            * *region*                Optional. AWS region to use. If not provided, default region set in environment variables will be use if set, otherwise will fail.
 
 
 1. **lambda_function**
