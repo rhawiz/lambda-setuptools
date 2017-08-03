@@ -65,6 +65,7 @@ class LDeploy(Command):
         ('swagger-path=', None, 'Path to swagger specification file (YAML or JSON)'),
         ('deploy-stage=', None, 'Name of the deployment stage'),
         ('vpc-subnets=', None, 'VPC Configuration list of subnet ids separated by a comma'),
+        ('vpc-security-groups=', None, 'VPC Configuration list of security group ids separated by a comma'),
         ('role=', None, 'AWS Gateway role to use when creating API gateway'),
         ('region=', None,
          'AWS region to use. If not provided, default region set in environment variables will be use if set, otherwise will fail.')

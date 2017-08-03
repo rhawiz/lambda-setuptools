@@ -19,10 +19,15 @@ This extension adds two new commands to setuptools:
 3. **ldeploy**
     * Usage `python setup.py ldeploy --swagger-path <swagger_spec_path> --deploy-stage <stage_name> --access-key=<my_access_key> --secret-access-key=<my_secret>`
         * Effect: This will build (using _ldist_) and upload to AWS with the function name defined in `operationId` for each path and will map the lambda functions to each gateway if swagger-path is defined. If deploy-stage is defined, a new stage of that name will be created and the API will be deployed.
-            * swagger-path is optional. If not provided the API gateway will not be created
-            * deploy-stage is optional. If not provided stage deployment will not be initiated
-            * access-key is optional. If not provided, default values set in environment variables will be used. If defaults not set, deploy will fail.
-            * secret-access-key is optional. If not provided, default values set in environment variables will be used. If defaults not set, deploy will fail.
+            * access-key            The access key to use to upload. If not provided, default access key set in environment variables will be use if set, otherwise will fail.
+            * secret-access-key     The access key to use to upload. If not provided, default secret key set in environment variables will be use if set, otherwise will fail.
+            * swagger-path          Path to swagger specification file (YAML or JSON)
+            * deploy-stage          Name of the deployment stage
+            * vpc-subnets           VPC Configuration list of subnet ids separated by a comma
+            * vpc-security-groups   VPC Configuration list of security group ids separated by a comma
+            * role                  AWS Gateway role to use when creating API gateway
+            * region                AWS region to use. If not provided, default region set in environment variables will be use if set, otherwise will fail.
+
 
 1. **lambda_function**
     * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name>]`
@@ -36,11 +41,6 @@ This extension adds two new commands to setuptools:
 4. **lambda_config**
     * Usage: `lambda_config=<dict_lambda_configuration>`
     * Effect: This configuration will be used when creating the lambda functions on AWS
-5. **aws_role**
-    * Usage: `aws_role=<role_name>`
-    * Effect: AWS role to use when creating API gateway (note: the role must exist otherwise it will fail!)
-6. **aws_region**
-    * Usage: `aws_region=<region>`
 All _ldist_ attributes can be used in the same setup() call. It is up to the user to ensure that you don't step all over yourself...
 
 Note that all other commands and attributes in setup.py will still work the way you expect them to.
