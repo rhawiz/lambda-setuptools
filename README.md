@@ -21,7 +21,7 @@ This extension adds two new commands to setuptools:
         * Effect: This will build (using _ldist_) and upload to AWS with the function name defined in `operationId` for each path and will map the lambda functions to each gateway if swagger-path is defined. If deploy-stage is defined, a new stage of that name will be created and the API will be deployed.
             * *access-key*            Required only if default access key is not set. The access key to use to upload. If not provided, default access key set in environment variables will be use if set, otherwise will fail.
             * *secret-access-key*     Required only if default secret key is not set. The access key to use to upload. If not provided, default secret key set in environment variables will be use if set, otherwise will fail.
-            * *swagger-path*          Optional. Path to swagger specification file (YAML or JSON)
+            * *swagger-path*          Optional. Path to swagger specification file (YAML or JSON). If not provided, api gateway will not be created.
             * *deploy-stage*          Optional. Name of the deployment stage when deploying API gateway
             * *vpc-subnets*           Optional. VPC Configuration list of subnet ids separated by a comma
             * *vpc-security-groups*   Optional. VPC Configuration list of security group ids separated by a comma
@@ -32,6 +32,14 @@ This extension adds two new commands to setuptools:
 1. **lambda_function**
     * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name>]`
     * Effect: ldist will create a root-level python module named *<package_name>_function.py* where package_name is derived from the _name_ attribute. This created module will simply redefine all your defined lambda handler function at the root-level
+    * Example:
+```python
+lambda_function=[
+        "lambda_functions.aggregation_handler:aggregation",
+        "lambda_functions.polygon_handler:polygon",
+        "lambda_functions.distance_handler:distance"
+        ]
+```
 2. **lambda_module**
     * Usage: `lambda_module=<some_module>`
     * Effect: ldist adds the named module to the list of _py_modules_ to install, normally at the root level
@@ -41,6 +49,16 @@ This extension adds two new commands to setuptools:
 4. **lambda_config**
     * Usage: `lambda_config=<dict_lambda_configuration>`
     * Effect: This configuration will be used when creating the lambda functions on AWS
+    * Example:
+```python
+lambda_config={
+    "Runtime": "python3.6",
+    "Timeout": 60,
+    "MemorySize": 128,
+    "Publish": True
+}
+```
+
 All _ldist_ attributes can be used in the same setup() call. It is up to the user to ensure that you don't step all over yourself...
 
 Note that all other commands and attributes in setup.py will still work the way you expect them to.
