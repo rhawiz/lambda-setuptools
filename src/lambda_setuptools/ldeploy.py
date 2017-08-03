@@ -13,10 +13,6 @@ from swagger_spec_validator.validator20 import validate_spec
 from yaml.scanner import ScannerError
 
 
-def validate_aws_role(dist, attr, value):
-    setattr(dist, "aws_role", value)
-
-
 def validate_lambda_config(dist, attr, value):
     """Validate lambda config, if not passed into setup then set default config"""
     config = {
@@ -29,16 +25,6 @@ def validate_lambda_config(dist, attr, value):
         config.update(value)
 
     setattr(dist, attr, config)
-
-
-def validate_aws_region(dist, attr, value):
-    if value is None:
-        session = boto3.Session()
-        if session.region_name is None:
-            raise DistutilsSetupError(
-                'aws_region must either be set or default value need to be setup by running `aws configure`')
-        else:
-            setattr(dist, 'aws_region', session.region_name)
 
 
 def validate_and_set_swagger_dict(dist, attr, value):
@@ -72,12 +58,16 @@ class LDeploy(Command):
 
     user_options = [
         # The format is (long option, short option, description).
-        ('access-key=', None, 'The access key to use to upload'),
-        ('secret-access-key=', None, 'The secret access to use to upload'),
+        ('access-key=', None,
+         'The access key to use to upload. If not provided, default access key set in environment variables will be use if set, otherwise will fail.'),
+        ('secret-access-key=', None,
+         'The access key to use to upload. If not provided, default secret key set in environment variables will be use if set, otherwise will fail.'),
         ('swagger-path=', None, 'Path to swagger specification file (YAML or JSON)'),
         ('deploy-stage=', None, 'Name of the deployment stage'),
         ('vpc-subnets=', None, 'VPC Configuration list of subnet ids separated by a comma'),
-        ('vpc-security-groups=', None, 'VPC Configuration list of security group ids separated by a comma')
+        ('role=', None, 'AWS Gateway role to use when creating API gateway'),
+        ('region=', None,
+         'AWS region to use. If not provided, default region set in environment variables will be use if set, otherwise will fail.')
     ]
 
     def initialize_options(self):
@@ -94,6 +84,8 @@ class LDeploy(Command):
         setattr(self, 'deploy_stage', None)
         setattr(self, 'vpc_subnets', None)
         setattr(self, 'vpc_security_groups', None)
+        setattr(self, 'role', None)
+        setattr(self, 'region', session.region_name)
 
     def finalize_options(self):
         """Post-process options."""
@@ -101,6 +93,9 @@ class LDeploy(Command):
         if getattr(self, 'access_key') is None or getattr(self, 'secret_access_key') is None:
             raise DistutilsOptionError('access-key and secret-access-key are required or \
                                             default values need to be setup by running `aws configure`')
+        if getattr(self, 'region') is None:
+            raise DistutilsSetupError(
+                'region must either be provided or default value need to be setup by running `aws configure`')
 
     def run(self):
         """Run command."""
@@ -122,7 +117,7 @@ class LDeploy(Command):
     def _create_swagger_doc(self, lambda_mapping):
         log.info("Creating swagger specification")
         swagger_dict = copy(getattr(self, 'swagger_dict'))
-        region = getattr(self.distribution, 'aws_region', None)
+        region = getattr(self, 'region', None)
         paths = swagger_dict["paths"]
 
         for path in paths.keys():
@@ -143,11 +138,11 @@ class LDeploy(Command):
     def _create_or_update_lambda_functions(self, ldist_cmd):
         lambda_function_names = getattr(ldist_cmd, 'lambda_function_names', None)
         dist_path = getattr(ldist_cmd, 'dist_path', None)
-        region = getattr(self.distribution, 'aws_region', None)
+        region = getattr(self, 'region', None)
 
-        role = getattr(self.distribution, 'aws_role', None)
-        vpc_subnets = getattr(self.distribution, 'vpc_subnets', None)
-        vpc_security_groups = getattr(self.distribution, 'vpc_security_groups', None)
+        role = getattr(self, 'role', None)
+        vpc_subnets = getattr(self, 'vpc_subnets', None)
+        vpc_security_groups = getattr(self, 'vpc_security_groups', None)
 
         iam_client = boto3.client(
             'iam',
@@ -229,7 +224,7 @@ class LDeploy(Command):
         swagger_doc = self._create_swagger_doc(gw_lambda_mapping)
         log.info("Creating API gateway from swagger specification")
 
-        region = getattr(self.distribution, 'aws_region', None)
+        region = getattr(self, 'region', None)
 
         gateway_client = boto3.client('apigateway', region_name=region, aws_access_key_id=getattr(self, 'access_key'),
                                       aws_secret_access_key=getattr(self, 'secret_access_key'))

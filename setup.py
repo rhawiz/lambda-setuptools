@@ -51,10 +51,7 @@ setup(
             'lambda_function = lambda_setuptools.ldist:validate_lambda_function',
             'lambda_module = lambda_setuptools.ldist:add_lambda_module_to_py_modules',
             'lambda_package = lambda_setuptools.ldist:validate_lambda_package',
-            'lambda_config = lambda_setuptools.ldeploy:validate_lambda_config',
-            'aws_role = lambda_setuptools.ldeploy:validate_aws_role',
-            'aws_region = lambda_setuptools.ldeploy:validate_aws_region'
-
+            'lambda_config = lambda_setuptools.ldeploy:validate_lambda_config'
         ]
     }
 )
