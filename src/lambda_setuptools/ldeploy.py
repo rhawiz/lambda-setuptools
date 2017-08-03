@@ -17,10 +17,6 @@ def validate_aws_role(dist, attr, value):
     setattr(dist, "aws_role", value)
 
 
-def validate_vpc_config(dist, attr, value):
-    setattr(dist, "aws_vpc_config", value)
-
-
 def validate_lambda_config(dist, attr, value):
     """Validate lambda config, if not passed into setup then set default config"""
     config = {
@@ -79,7 +75,9 @@ class LDeploy(Command):
         ('access-key=', None, 'The access key to use to upload'),
         ('secret-access-key=', None, 'The secret access to use to upload'),
         ('swagger-path=', None, 'Path to swagger specification file (YAML or JSON)'),
-        ('deploy-stage=', None, 'Name of the deployment stage')
+        ('deploy-stage=', None, 'Name of the deployment stage'),
+        ('vpc-subnets=', None, 'VPC Configuration list of subnet ids separated by a comma'),
+        ('vpc-security-groups=', None, 'VPC Configuration list of security group ids separated by a comma')
     ]
 
     def initialize_options(self):
@@ -94,6 +92,8 @@ class LDeploy(Command):
         setattr(self, 'secret_access_key', default_secret_access_key)
         setattr(self, 'swagger_path', None)
         setattr(self, 'deploy_stage', None)
+        setattr(self, 'vpc_subnets', None)
+        setattr(self, 'vpc_security_groups', None)
 
     def finalize_options(self):
         """Post-process options."""
@@ -146,7 +146,8 @@ class LDeploy(Command):
         region = getattr(self.distribution, 'aws_region', None)
 
         role = getattr(self.distribution, 'aws_role', None)
-        vpc_config = getattr(self.distribution, 'aws_vpc_config', None)
+        vpc_subnets = getattr(self.distribution, 'vpc_subnets', None)
+        vpc_security_groups = getattr(self.distribution, 'vpc_security_groups', None)
 
         iam_client = boto3.client(
             'iam',
@@ -184,7 +185,15 @@ class LDeploy(Command):
             config["Role"] = arn_role
             config["Handler"] = handler
             config["Code"] = {'ZipFile': zipfile.read()}
-            if vpc_config is not None:
+
+            vpc_config = {}
+
+            if vpc_subnets:
+                vpc_config["SubnetIds"] = [vpc_subnets]
+            if vpc_security_groups:
+                vpc_config["SecurityGroupIds"] = [vpc_security_groups]
+
+            if len(vpc_config) is not 0:
                 config["VpcConfig"] = vpc_config
 
             if exists:
@@ -205,9 +214,7 @@ class LDeploy(Command):
             else:
                 log.info("Creating lambda function '{}'.".format(function_name))
                 try:
-                    # vpc_config = config.pop("VpcConfig")
                     r = lambda_client.create_function(**config)
-                    # lambda_client.update_function_configuration(FunctionName=function_name, VpcConfig=vpc_config)
                     log.info("successfully created: {}".format(r.get("FunctionArn", "")))
 
                 except Exception as e:

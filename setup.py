@@ -53,7 +53,6 @@ setup(
             'lambda_package = lambda_setuptools.ldist:validate_lambda_package',
             'lambda_config = lambda_setuptools.ldeploy:validate_lambda_config',
             'aws_role = lambda_setuptools.ldeploy:validate_aws_role',
-            'aws_vpc_config = lambda_setuptools.ldeploy:validate_vpc_config',
             'aws_region = lambda_setuptools.ldeploy:validate_aws_region'
 
         ]
