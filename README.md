@@ -48,7 +48,7 @@ lambda_function=[
     * Effect: ldist will copy the contents of the provided directory into the root level of the resulting lambda distribution. The provided directory **MUST NOT** have an *\_\_init__.py* in it (e.g. - it can't be a real package)
 4. **lambda_config**
     * Usage: `lambda_config=<dict_lambda_configuration>`
-    * Effect: This configuration will be used when creating the lambda functions on AWS
+    * Effect: This configuration will be used when creating the lambda functions on AWS and must adhere to [boto3 configuration](http://boto3.readthedocs.io/en/latest/reference/services/lambda.html#Lambda.Client.create_function).
     * Example:
 ```python
 lambda_config={
