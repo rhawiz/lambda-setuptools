@@ -47,6 +47,9 @@ def validate_aws_region(dist, attr, value):
 
 def validate_and_set_swagger_dict(dist, attr, value):
     """Validate swagger specification and set dist swagger_dict attribute"""
+    if value is None:
+        setattr(dist, 'swagger_dict', None)
+        return
 
     swagger_dict = value
     if isinstance(value, dict):
@@ -164,17 +167,6 @@ class LDeploy(Command):
 
         lambda_config = getattr(self.distribution, 'lambda_config', {})
 
-        print(vpc_config)
-        print(vpc_config)
-        print(vpc_config)
-        print(role)
-        print(arn_role)
-        print(region)
-        print(boto3.client('sts',
-                           aws_access_key_id=getattr(self, 'access_key'),
-                           aws_secret_access_key=getattr(self, 'secret_access_key'),
-                           ).get_caller_identity())
-
         log.info("Creating lambda functions.")
         for function_name in lambda_function_names.keys():
             handler = lambda_function_names.get(function_name)
@@ -258,7 +250,7 @@ class LDeploy(Command):
                         log.info("\tUpdating permissions for function {}".format(function_name))
                         lambda_client = boto3.client('lambda', region_name=region,
                                                      aws_access_key_id=getattr(self, 'access_key'),
-                                                     aws_secret_access_key=getattr(self, 'secret_access_key') )
+                                                     aws_secret_access_key=getattr(self, 'secret_access_key'))
                         source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(
                             region=region,
                             account_id=account_id,
