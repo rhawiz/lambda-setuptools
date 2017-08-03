@@ -157,6 +157,7 @@ class LDeploy(Command):
 
         print(vpc_config)
         print(role)
+        print(arn_role)
         print(region)
         print(boto3.client('sts').get_caller_identity())
 
