@@ -290,13 +290,3 @@ class LDeploy(Command):
         except Exception as e:
             log.error(e)
             raise DistutilsSetupError("Failed to import swagger specification")
-
-
-if __name__ == "__main__":
-    ec2 = boto3.resource("ec2")
-    for vpc in ec2.vpcs.all():
-        for subnet in vpc.subnets.all():
-            print(vpc, "all:", subnet)
-        for az in ec2.meta.client.describe_availability_zones()["AvailabilityZones"]:
-            for subnet in vpc.subnets.filter(Filters=[{"Name": "availabilityZone", "Values": [az["ZoneName"]]}]):
-                print(vpc, az["ZoneName"], "filter:", subnet)
