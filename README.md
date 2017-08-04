@@ -30,7 +30,7 @@ This extension adds two new commands to setuptools:
 
 
 1. **lambda_function**
-    * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name>]`
+    * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name/swagger_path_operation_id>]`
     * Effect: ldist will create a root-level python module named *<package_name>_function.py* where package_name is derived from the _name_ attribute. This created module will simply redefine all your defined lambda handler function at the root-level
     * Example:
 ```python
