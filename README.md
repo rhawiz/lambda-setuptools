@@ -17,7 +17,7 @@ This extension adds two new commands to setuptools:
             * _kms-key-id_ is optional. If it is not provided, standard AES256 encryption will be used
             * _s3-prefix_ is optional. If it is not provided, the ZIP file will be uploaded to the root of the S3 bucket
 3. **ldeploy**
-    * Usage `python setup.py ldeploy --swagger-path <swagger_spec_path> --deploy-stage <stage_name> --access-key=<my_access_key> --secret-access-key=<my_secret> --vpc-subnets=<SUBNET_IDS> --vpc-security-groups=<SECURITY_GROUP_IDS> --role=<AWS_ROLE> --region=<AWS_REGION>`
+    * Usage `ldeploy --swagger-path <swagger_spec_path> --deploy-stage <stage_name> --access-key=<my_access_key> --secret-access-key=<my_secret> --vpc-subnets=<SUBNET_IDS> --vpc-security-groups=<SECURITY_GROUP_IDS> --role=<AWS_ROLE> --region=<AWS_REGION>`
         * Effect: This will build (using _ldist_) and upload to AWS with the function name defined in `operationId` for each path and will map the lambda functions to each gateway if swagger-path is defined. If deploy-stage is defined, a new stage of that name will be created and the API will be deployed.
             * *access-key*            Required only if default access key is not set. The access key to use to upload. If not provided, default access key set in environment variables will be use if set, otherwise will fail.
             * *secret-access-key*     Required only if default secret key is not set. The access key to use to upload. If not provided, default secret key set in environment variables will be use if set, otherwise will fail.
@@ -30,7 +30,7 @@ This extension adds two new commands to setuptools:
 
 
 1. **lambda_function**
-    * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name>]`
+    * Usage: `lambda_function=[<my_package>.<some_module>:<handler_name/swagger_path_operation_id>]`
     * Effect: ldist will create a root-level python module named *<package_name>_function.py* where package_name is derived from the _name_ attribute. This created module will simply redefine all your defined lambda handler function at the root-level
     * Example:
 ```python
