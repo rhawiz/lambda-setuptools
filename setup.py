@@ -19,7 +19,7 @@ setup(
     description='A Command extension to setuptools that allows building an AWS Lamba dist and uploading to S3',
     long_description=read('README.md'),
 
-    url='https://github.com/QuiNovas/lambda-setuptools',
+    url='https://github.com/rhawiz/lambda-setuptools',
 
     author='Joseph Wortmann',
     author_email='joseph.wortmann@gmail.com',
