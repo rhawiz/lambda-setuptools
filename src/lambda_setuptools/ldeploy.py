@@ -1,6 +1,5 @@
 import os
 from copy import copy
-from json import JSONDecodeError
 
 import boto3
 from distutils import log
@@ -40,6 +39,7 @@ def validate_and_set_swagger_dict(dist, attr, value):
         contents = value
         if os.path.exists(value):
             contents = open(value, 'r').read()
+        from json import JSONDecodeError
         try:
             swagger_dict = yaml.load(contents)
         except (ScannerError, JSONDecodeError, ValueError):
