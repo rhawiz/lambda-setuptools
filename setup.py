@@ -36,7 +36,7 @@ setup(
 
     keywords='setuptools extension',
 
-    install_requires=['boto3', 'setuptools', 'wheel', 'swagger_spec_validator'],
+    install_requires=['boto3', 'setuptools', 'wheel', 'pyyaml', 'swagger_spec_validator'],
 
     package_dir={'': 'src'},
     packages=find_packages('src'),
