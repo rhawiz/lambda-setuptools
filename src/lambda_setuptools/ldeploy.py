@@ -75,8 +75,9 @@ class LDeploy(Command):
         """Set default values for options."""
         session = boto3.Session()
 
-        default_access_key = session.get_credentials().access_key
-        default_secret_access_key = session.get_credentials().secret_key
+        if session is not None:
+            default_access_key = session.get_credentials().access_key
+            default_secret_access_key = session.get_credentials().secret_key
 
         # Each user option must be listed here with their default value.
         setattr(self, 'access_key', default_access_key)
