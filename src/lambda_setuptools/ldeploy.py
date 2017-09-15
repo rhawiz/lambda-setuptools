@@ -258,10 +258,13 @@ class LDeploy(Command):
                         lambda_client = boto3.client('lambda', region_name=region,
                                                      aws_access_key_id=getattr(self, 'access_key'),
                                                      aws_secret_access_key=getattr(self, 'secret_access_key'))
-                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/ANY/*".format(
+                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/{deploy_stage}/ANY/{function_name}".format(
+                            deploy_stage=deploy_stage,
                             region=region,
                             account_id=account_id,
-                            rest_id=rest_id)
+                            rest_id=rest_id,
+                            function_name=function_name
+                        )
                         log.info(source_arn)
 
                         try:
@@ -282,7 +285,6 @@ class LDeploy(Command):
                         )
 
                 except Exception as e:
-
                     log.error("Failed to deploy API: {}".format(e))
 
 
