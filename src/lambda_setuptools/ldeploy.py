@@ -75,6 +75,9 @@ class LDeploy(Command):
         """Set default values for options."""
         session = boto3.Session()
 
+        default_access_key = ""
+        default_secret_access_key = ""
+
         if session is not None:
             default_access_key = session.get_credentials().access_key
             default_secret_access_key = session.get_credentials().secret_key
@@ -255,7 +258,7 @@ class LDeploy(Command):
                         lambda_client = boto3.client('lambda', region_name=region,
                                                      aws_access_key_id=getattr(self, 'access_key'),
                                                      aws_secret_access_key=getattr(self, 'secret_access_key'))
-                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(
+                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/ANY/*".format(
                             region=region,
                             account_id=account_id,
                             rest_id=rest_id)
