@@ -111,7 +111,7 @@ class LDist(Command):
 
             if len(components[1].split(":")) == 2:
                 lambda_function_names[components[1].split(":")[1]] = "{}.{}".format(function_file_name.split(".")[0],
-                                                                                    function)
+                                                                               function)
 
         setattr(self, 'lambda_function_names', lambda_function_names)
 
@@ -154,7 +154,6 @@ class LDist(Command):
         log.info('installing package {} from {} into {}'.format(package_name,
                                                                 self._dist_dir,
                                                                 self._lambda_build_dir))
-
         pip = Popen(['pip', 'install',
                      '-f', self._dist_dir,
                      '-t', self._lambda_build_dir, package_name],
@@ -164,6 +163,4 @@ class LDist(Command):
         log.debug("pip stderr: {}".format(stderr))
 
         if pip.returncode is not 0:
-            log.info(pip.stdout.__str__())
-            log.info(pip.stderr.__str__())
-            # raise DistutilsPlatformError('pip returned unsuccessfully')
+            raise DistutilsPlatformError('pip returned unsuccessfully')
