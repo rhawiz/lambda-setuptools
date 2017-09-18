@@ -75,12 +75,14 @@ class LDeploy(Command):
         """Set default values for options."""
         session = boto3.Session()
 
-        default_access_key = ""
-        default_secret_access_key = ""
+        default_access_key = None
+        default_secret_access_key = None
+        default_region = None
 
         if session is not None:
             default_access_key = session.get_credentials().access_key
             default_secret_access_key = session.get_credentials().secret_key
+            default_region = session.region_name
 
         # Each user option must be listed here with their default value.
         setattr(self, 'access_key', default_access_key)
@@ -90,7 +92,7 @@ class LDeploy(Command):
         setattr(self, 'vpc_subnets', None)
         setattr(self, 'vpc_security_groups', None)
         setattr(self, 'role', None)
-        setattr(self, 'region', session.region_name)
+        setattr(self, 'region', default_region)
 
     def finalize_options(self):
         """Post-process options."""
