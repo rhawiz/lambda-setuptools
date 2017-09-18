@@ -81,7 +81,7 @@ class LDeploy(Command):
         default_secret_access_key = None
         default_region = None
 
-        logging.info(session)
+        log.info(session)
 
         if session is not None:
             try:
@@ -89,7 +89,7 @@ class LDeploy(Command):
                 default_secret_access_key = session.get_credentials().secret_key
                 default_region = session.region_name
             except Exception as e:
-                logging.exception(e)
+                log.error(e)
 
         # Each user option must be listed here with their default value.
         setattr(self, 'access_key', default_access_key)
@@ -198,9 +198,9 @@ class LDeploy(Command):
             vpc_config = {}
 
             if vpc_subnets:
-                vpc_config["SubnetIds"] = [vpc_subnets]
+                vpc_config["SubnetIds"] = [a.strip() for a in vpc_subnets.split(',')]
             if vpc_security_groups:
-                vpc_config["SecurityGroupIds"] = [vpc_security_groups]
+                vpc_config["SecurityGroupIds"] = [a.strip() for a in vpc_security_groups.split(',')]
 
             if len(vpc_config) is not 0:
                 config["VpcConfig"] = vpc_config
