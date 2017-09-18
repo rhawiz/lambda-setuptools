@@ -84,9 +84,12 @@ class LDeploy(Command):
         logging.info(session)
 
         if session is not None:
-            default_access_key = session.get_credentials().access_key
-            default_secret_access_key = session.get_credentials().secret_key
-            default_region = session.region_name
+            try:
+                default_access_key = session.get_credentials().access_key
+                default_secret_access_key = session.get_credentials().secret_key
+                default_region = session.region_name
+            except Exception as e:
+                logging.exception(e)
 
         # Each user option must be listed here with their default value.
         setattr(self, 'access_key', default_access_key)
