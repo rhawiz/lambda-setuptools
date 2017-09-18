@@ -265,13 +265,17 @@ class LDeploy(Command):
                         lambda_client = boto3.client('lambda', region_name=region,
                                                      aws_access_key_id=getattr(self, 'access_key'),
                                                      aws_secret_access_key=getattr(self, 'secret_access_key'))
-                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/{deploy_stage}/ANY/{function_name}".format(
-                            deploy_stage=deploy_stage,
+                        # source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/{deploy_stage}/ANY/{function_name}".format(
+                        #     deploy_stage=deploy_stage,
+                        #     region=region,
+                        #     account_id=account_id,
+                        #     rest_id=rest_id,
+                        #     function_name=function_name
+                        # )
+                        source_arn = "arn:aws:execute-api:{region}:{account_id}:{rest_id}/*/*/*".format(
                             region=region,
                             account_id=account_id,
-                            rest_id=rest_id,
-                            function_name=function_name
-                        )
+                            rest_id=rest_id)
                         log.info(source_arn)
 
                         try:
