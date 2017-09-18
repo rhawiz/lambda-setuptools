@@ -81,8 +81,6 @@ class LDeploy(Command):
         default_secret_access_key = None
         default_region = None
 
-        log.info(session)
-
         if session is not None:
             try:
                 default_access_key = session.get_credentials().access_key
