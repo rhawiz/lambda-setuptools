@@ -163,4 +163,6 @@ class LDist(Command):
         log.debug("pip stderr: {}".format(stderr))
 
         if pip.returncode is not 0:
-            raise DistutilsPlatformError('pip returned unsuccessfully')
+            log.info(pip.stdout)
+            log.info(pip.stderr)
+            #raise DistutilsPlatformError('pip returned unsuccessfully')
