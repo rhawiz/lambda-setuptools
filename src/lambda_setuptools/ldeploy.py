@@ -3,6 +3,8 @@ from copy import copy
 
 import boto3
 from distutils import log
+
+import logging
 import yaml
 from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsSetupError, DistutilsExecError
 from jsonschema import ValidationError
@@ -78,6 +80,8 @@ class LDeploy(Command):
         default_access_key = None
         default_secret_access_key = None
         default_region = None
+
+        logging.info(session)
 
         if session is not None:
             default_access_key = session.get_credentials().access_key
